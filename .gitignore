@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+out/
+build/
+target/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Tool caches
+.turbo/
+.cache/
+.eslintcache
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Operating system and editors
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+.cursor/

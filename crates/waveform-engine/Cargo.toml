@@ -1,0 +1,24 @@
+[package]
+name = "waveform-engine"
+description = "Safe Rust interface to Waveform's C++ audio engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+links = "waveform_engine"
+
+[dependencies]
+cxx = { workspace = true }
+thiserror = { workspace = true }
+
+[build-dependencies]
+cmake = { workspace = true }
+cxx-build = { workspace = true }
+
+# Runs on the process's main thread, which JUCE needs on macOS and Windows.
+[[test]]
+name = "runtime"
+harness = false
+
+[lints]
+workspace = true

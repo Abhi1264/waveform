@@ -1,0 +1,35 @@
+{
+  "name": "waveform",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "packageManager": "pnpm@12.9.1",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.9.1",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": "^26.8.0"
+  },
+  "scripts": {
+    "build": "TURBO_TELEMETRY_DISABLED=1 turbo run build",
+    "dev": "TURBO_TELEMETRY_DISABLED=1 turbo run dev",
+    "lint": "TURBO_TELEMETRY_DISABLED=1 turbo run lint && TURBO_TELEMETRY_DISABLED=1 turbo boundaries",
+    "typecheck": "TURBO_TELEMETRY_DISABLED=1 turbo run typecheck",
+    "test": "TURBO_TELEMETRY_DISABLED=1 turbo run test",
+    "test:watch": "vitest",
+    "test:e2e": "TURBO_TELEMETRY_DISABLED=1 turbo run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
+    "turbo": "catalog:",
+    "vitest": "catalog:"
+  }
+}

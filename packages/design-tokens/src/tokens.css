@@ -1,0 +1,285 @@
+/* Generated from src/tokens.ts. Do not edit: run `pnpm --filter @waveform/design-tokens generate`. */
+
+:root {
+  --wf-font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif, "Apple Symbols", "Segoe UI Symbol", "DejaVu Sans";
+  --wf-font-mono: "Martian Mono Variable", ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --wf-font-stretch-label: 75%;
+  --wf-font-stretch-readout: 87.5%;
+  --wf-text-label-size: 0.6875rem;
+  --wf-text-label-leading: 1rem;
+  --wf-text-label-weight: 600;
+  --wf-text-label-tracking: 0.06em;
+  --wf-text-caption-size: 0.75rem;
+  --wf-text-caption-leading: 1rem;
+  --wf-text-caption-weight: 400;
+  --wf-text-caption-tracking: 0em;
+  --wf-text-title-size: 0.9375rem;
+  --wf-text-title-leading: 1.25rem;
+  --wf-text-title-weight: 600;
+  --wf-text-title-tracking: 0em;
+  --wf-text-heading-size: 1.25rem;
+  --wf-text-heading-leading: 1.75rem;
+  --wf-text-heading-weight: 600;
+  --wf-text-heading-tracking: -0.01em;
+  --wf-text-display-size: 2.75rem;
+  --wf-text-display-leading: 1;
+  --wf-text-display-weight: 700;
+  --wf-text-display-tracking: -0.02em;
+  --wf-text-readout-sm-size: 0.75rem;
+  --wf-text-readout-sm-leading: 1rem;
+  --wf-text-readout-sm-weight: 400;
+  --wf-text-readout-sm-tracking: 0em;
+  --wf-text-readout-size: 0.9375rem;
+  --wf-text-readout-leading: 1.25rem;
+  --wf-text-readout-weight: 450;
+  --wf-text-readout-tracking: 0em;
+  --wf-text-readout-lg-size: 1.5rem;
+  --wf-text-readout-lg-leading: 1.75rem;
+  --wf-text-readout-lg-weight: 500;
+  --wf-text-readout-lg-tracking: -0.01em;
+  --wf-text-readout-xl-size: 2.75rem;
+  --wf-text-readout-xl-leading: 1;
+  --wf-text-readout-xl-weight: 500;
+  --wf-text-readout-xl-tracking: -0.02em;
+  --wf-radius-sm: 0.27rem;
+  --wf-radius-md: 0.36rem;
+  --wf-radius-lg: 0.45rem;
+  --wf-radius-xl: 0.63rem;
+  --wf-radius-full: 9999px;
+  --wf-duration-fast: 80ms;
+  --wf-duration-base: 140ms;
+  --wf-duration-slow: 220ms;
+  --wf-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --wf-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --wf-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --wf-layer-base: 0;
+  --wf-layer-raised: 1;
+  --wf-layer-sticky: 10;
+  --wf-layer-drag: 20;
+  --wf-layer-overlay: 50;
+  color-scheme: light;
+  --wf-color-canvas: oklch(0.985 0.004 286);
+  --wf-color-sunken: oklch(0.945 0.004 286);
+  --wf-color-surface: oklch(0.965 0.003 286);
+  --wf-color-raised: oklch(1 0 286);
+  --wf-color-control: oklch(0.935 0.006 286);
+  --wf-color-control-hover: oklch(0.905 0.007 286);
+  --wf-color-divider: oklch(0.91 0.006 286);
+  --wf-color-control-border: oklch(0.6 0.008 286);
+  --wf-color-focus: oklch(0.18 0.004 286);
+  --wf-color-text: oklch(0.18 0.004 286);
+  --wf-color-text-muted: oklch(0.47 0.009 286);
+  --wf-color-primary: oklch(0.18 0.004 286);
+  --wf-color-primary-text: oklch(0.985 0.004 286);
+  --wf-color-danger: oklch(0.52 0.17 27);
+  --wf-color-danger-surface: oklch(0.955 0.02 25);
+  --wf-color-warning: oklch(0.5 0.108 70);
+  --wf-color-warning-surface: oklch(0.96 0.03 85);
+  --wf-color-positive: oklch(0.5 0.12 150);
+  --wf-color-positive-surface: oklch(0.96 0.025 150);
+  --wf-color-band-low: oklch(0.55 0.16 28);
+  --wf-color-band-mid: oklch(0.55 0.112 90);
+  --wf-color-band-high: oklch(0.55 0.104 225);
+  --wf-color-deck-a: oklch(0.55 0.154 250);
+  --wf-color-deck-b: oklch(0.55 0.16 345);
+  --wf-color-deck-c: oklch(0.55 0.124 160);
+  --wf-color-deck-d: oklch(0.55 0.16 300);
+  --wf-color-cue-1: oklch(0.55 0.16 25);
+  --wf-color-cue-2: oklch(0.55 0.128 60);
+  --wf-color-cue-3: oklch(0.55 0.112 95);
+  --wf-color-cue-4: oklch(0.55 0.16 145);
+  --wf-color-cue-5: oklch(0.55 0.094 190);
+  --wf-color-cue-6: oklch(0.55 0.126 240);
+  --wf-color-cue-7: oklch(0.55 0.16 290);
+  --wf-color-cue-8: oklch(0.55 0.16 335);
+  --wf-color-level-safe: oklch(0.55 0.15 150);
+  --wf-color-level-hot: oklch(0.55 0.116 75);
+  --wf-color-level-clip: oklch(0.55 0.16 27);
+  --wf-color-on-signal: oklch(1 0 0);
+  --wf-shadow-raised: 0 1px 2px oklch(0.2 0.01 286 / 0.08), 0 1px 1px oklch(0.2 0.01 286 / 0.04);
+  --wf-shadow-overlay: 0 8px 24px oklch(0.2 0.01 286 / 0.14), 0 2px 6px oklch(0.2 0.01 286 / 0.08);
+  --wf-control-height-sm: 1.75rem;
+  --wf-control-height: 2rem;
+  --wf-control-height-lg: 2.5rem;
+  --wf-control-padding-x: 0.625rem;
+  --wf-control-gap: 0.375rem;
+  --wf-icon-size: 1rem;
+  --wf-target-min: 1.75rem;
+  --wf-row-height: 2rem;
+  --wf-knob-size: 3rem;
+  --wf-fader-length: 9rem;
+  --wf-text-body-size: 0.875rem;
+  --wf-text-body-leading: 1.375rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --wf-color-canvas: oklch(0.164 0.004 286);
+    --wf-color-sunken: oklch(0.13 0.004 286);
+    --wf-color-surface: oklch(0.195 0.003 286);
+    --wf-color-raised: oklch(0.235 0.006 286);
+    --wf-color-control: oklch(0.27 0.006 286);
+    --wf-color-control-hover: oklch(0.31 0.007 286);
+    --wf-color-divider: oklch(0.29 0.006 286);
+    --wf-color-control-border: oklch(0.55 0.008 286);
+    --wf-color-focus: oklch(0.965 0.004 286);
+    --wf-color-text: oklch(0.965 0.004 286);
+    --wf-color-text-muted: oklch(0.74 0.009 286);
+    --wf-color-primary: oklch(0.965 0.004 286);
+    --wf-color-primary-text: oklch(0.164 0.004 286);
+    --wf-color-danger: oklch(0.74 0.15 25);
+    --wf-color-danger-surface: oklch(0.26 0.06 25);
+    --wf-color-warning: oklch(0.82 0.14 80);
+    --wf-color-warning-surface: oklch(0.26 0.05 75);
+    --wf-color-positive: oklch(0.8 0.15 150);
+    --wf-color-positive-surface: oklch(0.26 0.05 150);
+    --wf-color-band-low: oklch(0.76 0.142 28);
+    --wf-color-band-mid: oklch(0.76 0.154 90);
+    --wf-color-band-high: oklch(0.76 0.144 225);
+    --wf-color-deck-a: oklch(0.76 0.126 250);
+    --wf-color-deck-b: oklch(0.76 0.16 345);
+    --wf-color-deck-c: oklch(0.76 0.16 160);
+    --wf-color-deck-d: oklch(0.76 0.144 300);
+    --wf-color-cue-1: oklch(0.76 0.142 25);
+    --wf-color-cue-2: oklch(0.76 0.16 60);
+    --wf-color-cue-3: oklch(0.76 0.156 95);
+    --wf-color-cue-4: oklch(0.76 0.16 145);
+    --wf-color-cue-5: oklch(0.76 0.13 190);
+    --wf-color-cue-6: oklch(0.76 0.136 240);
+    --wf-color-cue-7: oklch(0.76 0.132 290);
+    --wf-color-cue-8: oklch(0.76 0.16 335);
+    --wf-color-level-safe: oklch(0.76 0.16 150);
+    --wf-color-level-hot: oklch(0.76 0.16 75);
+    --wf-color-level-clip: oklch(0.76 0.142 27);
+    --wf-color-on-signal: oklch(0.164 0.004 286);
+    --wf-shadow-raised: 0 1px 2px oklch(0 0 0 / 0.5);
+    --wf-shadow-overlay: 0 12px 32px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(1 0 0 / 0.06);
+  }
+}
+
+:root.dark {
+  color-scheme: dark;
+  --wf-color-canvas: oklch(0.164 0.004 286);
+  --wf-color-sunken: oklch(0.13 0.004 286);
+  --wf-color-surface: oklch(0.195 0.003 286);
+  --wf-color-raised: oklch(0.235 0.006 286);
+  --wf-color-control: oklch(0.27 0.006 286);
+  --wf-color-control-hover: oklch(0.31 0.007 286);
+  --wf-color-divider: oklch(0.29 0.006 286);
+  --wf-color-control-border: oklch(0.55 0.008 286);
+  --wf-color-focus: oklch(0.965 0.004 286);
+  --wf-color-text: oklch(0.965 0.004 286);
+  --wf-color-text-muted: oklch(0.74 0.009 286);
+  --wf-color-primary: oklch(0.965 0.004 286);
+  --wf-color-primary-text: oklch(0.164 0.004 286);
+  --wf-color-danger: oklch(0.74 0.15 25);
+  --wf-color-danger-surface: oklch(0.26 0.06 25);
+  --wf-color-warning: oklch(0.82 0.14 80);
+  --wf-color-warning-surface: oklch(0.26 0.05 75);
+  --wf-color-positive: oklch(0.8 0.15 150);
+  --wf-color-positive-surface: oklch(0.26 0.05 150);
+  --wf-color-band-low: oklch(0.76 0.142 28);
+  --wf-color-band-mid: oklch(0.76 0.154 90);
+  --wf-color-band-high: oklch(0.76 0.144 225);
+  --wf-color-deck-a: oklch(0.76 0.126 250);
+  --wf-color-deck-b: oklch(0.76 0.16 345);
+  --wf-color-deck-c: oklch(0.76 0.16 160);
+  --wf-color-deck-d: oklch(0.76 0.144 300);
+  --wf-color-cue-1: oklch(0.76 0.142 25);
+  --wf-color-cue-2: oklch(0.76 0.16 60);
+  --wf-color-cue-3: oklch(0.76 0.156 95);
+  --wf-color-cue-4: oklch(0.76 0.16 145);
+  --wf-color-cue-5: oklch(0.76 0.13 190);
+  --wf-color-cue-6: oklch(0.76 0.136 240);
+  --wf-color-cue-7: oklch(0.76 0.132 290);
+  --wf-color-cue-8: oklch(0.76 0.16 335);
+  --wf-color-level-safe: oklch(0.76 0.16 150);
+  --wf-color-level-hot: oklch(0.76 0.16 75);
+  --wf-color-level-clip: oklch(0.76 0.142 27);
+  --wf-color-on-signal: oklch(0.164 0.004 286);
+  --wf-shadow-raised: 0 1px 2px oklch(0 0 0 / 0.5);
+  --wf-shadow-overlay: 0 12px 32px oklch(0 0 0 / 0.6), 0 0 0 1px oklch(1 0 0 / 0.06);
+}
+
+@media (pointer: coarse) {
+  :root:not([data-density]) {
+    --wf-control-height-sm: 2.75rem;
+    --wf-control-height: 3rem;
+    --wf-control-height-lg: 3.5rem;
+    --wf-control-padding-x: 1rem;
+    --wf-control-gap: 0.5rem;
+    --wf-icon-size: 1.25rem;
+    --wf-target-min: 2.75rem;
+    --wf-row-height: 3rem;
+    --wf-knob-size: 4rem;
+    --wf-fader-length: 12rem;
+    --wf-text-body-size: 1rem;
+    --wf-text-body-leading: 1.5rem;
+  }
+}
+
+[data-density="compact"] {
+  --wf-control-height-sm: 1.5rem;
+  --wf-control-height: 1.75rem;
+  --wf-control-height-lg: 2rem;
+  --wf-control-padding-x: 0.5rem;
+  --wf-control-gap: 0.25rem;
+  --wf-icon-size: 0.875rem;
+  --wf-target-min: 1.5rem;
+  --wf-row-height: 1.75rem;
+  --wf-knob-size: 2.5rem;
+  --wf-fader-length: 7.5rem;
+  --wf-text-body-size: 0.8125rem;
+  --wf-text-body-leading: 1.25rem;
+}
+
+[data-density="comfortable"] {
+  --wf-control-height-sm: 1.75rem;
+  --wf-control-height: 2rem;
+  --wf-control-height-lg: 2.5rem;
+  --wf-control-padding-x: 0.625rem;
+  --wf-control-gap: 0.375rem;
+  --wf-icon-size: 1rem;
+  --wf-target-min: 1.75rem;
+  --wf-row-height: 2rem;
+  --wf-knob-size: 3rem;
+  --wf-fader-length: 9rem;
+  --wf-text-body-size: 0.875rem;
+  --wf-text-body-leading: 1.375rem;
+}
+
+[data-density="touch"] {
+  --wf-control-height-sm: 2.75rem;
+  --wf-control-height: 3rem;
+  --wf-control-height-lg: 3.5rem;
+  --wf-control-padding-x: 1rem;
+  --wf-control-gap: 0.5rem;
+  --wf-icon-size: 1.25rem;
+  --wf-target-min: 2.75rem;
+  --wf-row-height: 3rem;
+  --wf-knob-size: 4rem;
+  --wf-fader-length: 12rem;
+  --wf-text-body-size: 1rem;
+  --wf-text-body-leading: 1.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) {
+    --wf-duration-fast: 0ms;
+    --wf-duration-base: 0ms;
+    --wf-duration-slow: 0ms;
+  }
+}
+
+[data-motion="reduced"] {
+  --wf-duration-fast: 0ms;
+  --wf-duration-base: 0ms;
+  --wf-duration-slow: 0ms;
+}
+
+[data-motion="full"] {
+  --wf-duration-fast: 80ms;
+  --wf-duration-base: 140ms;
+  --wf-duration-slow: 220ms;
+}

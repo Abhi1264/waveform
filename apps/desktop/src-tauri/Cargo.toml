@@ -1,0 +1,30 @@
+[package]
+name = "waveform-desktop"
+description = "Waveform desktop app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[lib]
+name = "waveform_desktop_lib"
+# iOS and Android builds will also need "staticlib" and "cdylib".
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+specta = { workspace = true }
+tauri = { workspace = true }
+tauri-specta = { workspace = true }
+waveform-engine = { workspace = true }
+
+# Only the bindings test exports TypeScript.
+[dev-dependencies]
+specta-typescript = { workspace = true }
+tauri-specta = { workspace = true, features = ["typescript"] }
+
+[lints]
+workspace = true

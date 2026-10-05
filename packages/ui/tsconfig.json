@@ -1,0 +1,9 @@
+{
+  "extends": "@waveform/config/tsconfig/react.json",
+  "compilerOptions": {
+    "paths": {
+      "@waveform/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["src", "*.js", "*.mjs", "*.ts"]
+}

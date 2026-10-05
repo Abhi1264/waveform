@@ -1,0 +1,12 @@
+{
+  "extends": "@waveform/config/tsconfig/react.json",
+  "compilerOptions": {
+    "types": ["vite/client", "node"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@waveform/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": ["src", "*.ts", "*.js"],
+  "exclude": ["e2e", "playwright.config.ts"]
+}

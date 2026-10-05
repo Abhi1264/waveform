@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="mark">
+      <circle cx="400" cy="400" r="400"/>
+    </clipPath>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="#0e0e10"/>
+  <g transform="translate(264 264) scale(0.62)" clip-path="url(#mark)" fill="#fff">
+    <rect width="100" height="800"/>
+    <rect x="140" y="300" width="100" height="500"/>
+    <rect x="280" y="120" width="100" height="680"/>
+    <rect x="420" y="200" width="100" height="600"/>
+    <rect x="560" width="100" height="800"/>
+    <rect x="700" y="100" width="100" height="700"/>
+  </g>
+</svg>

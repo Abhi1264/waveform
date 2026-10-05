@@ -1,0 +1,183 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+  # Keep in step with docs/DEVELOPMENT.md.
+  CMAKE_VERSION: 4.4.4
+  NINJA_VERSION: 1.13.2
+  NEXT_TELEMETRY_DISABLED: "1"
+  TURBO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  javascript:
+    name: JavaScript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - name: Install Playwright browsers
+        run: pnpm --filter @waveform/web exec playwright install --with-deps chromium webkit
+      - run: pnpm test:e2e
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/desktop/playwright-report
+          retention-days: 7
+
+  rust:
+    name: Rust
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential file libasound2-dev librsvg2-dev libssl-dev \
+            libwebkit2gtk-4.1-dev libxdo-dev
+      - name: Install CMake and Ninja
+        run: pipx install "cmake==$CMAKE_VERSION" && pipx install "ninja==$NINJA_VERSION"
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/downloads
+          key: downloads-${{ hashFiles('native/cmake/WaveformDependencies.cmake') }}
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # tauri::generate_context! embeds the built frontend, so it must exist
+      # before the desktop crate compiles.
+      - name: Build the desktop frontend
+        run: pnpm --filter @waveform/desktop build
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      - name: Check that the TypeScript bindings are up to date
+        run: |
+          if ! git diff --exit-code -- apps/desktop/src/bindings.ts; then
+            echo "::error file=apps/desktop/src/bindings.ts::Out of date. Run 'cargo test -p waveform-desktop export_bindings' and commit the result."
+            exit 1
+          fi
+
+  native:
+    name: Native engine (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, windows-2025, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libasound2-dev
+      - name: Install CMake and Ninja
+        run: pipx install "cmake==$CMAKE_VERSION" && pipx install "ninja==$NINJA_VERSION"
+      - name: Set up the MSVC environment for Ninja
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/downloads
+          key: downloads-${{ hashFiles('native/cmake/WaveformDependencies.cmake') }}
+      - name: Check C++ formatting
+        if: runner.os == 'Linux'
+        run: scripts/check-native-format.sh
+      - name: Configure, build and test
+        # PowerShell, so Git Bash's link.exe cannot shadow the MSVC linker.
+        shell: pwsh
+        run: cmake --workflow --preset ci
+
+  desktop:
+    name: Desktop app (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            bundles: app
+          - os: windows-2025
+            bundles: nsis
+          - os: ubuntu-24.04
+            bundles: deb
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential file libasound2-dev librsvg2-dev libssl-dev \
+            libwebkit2gtk-4.1-dev libxdo-dev xvfb
+      - name: Install CMake and Ninja
+        run: pipx install "cmake==$CMAKE_VERSION" && pipx install "ninja==$NINJA_VERSION"
+      - name: Install the Rust toolchain from rust-toolchain.toml
+        run: rustup toolchain install && rustup show active-toolchain
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .cache/downloads
+          key: downloads-${{ hashFiles('native/cmake/WaveformDependencies.cmake') }}
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the app
+        run: pnpm --filter @waveform/desktop tauri build --debug --bundles ${{ matrix.bundles }}
+      # Starts the real app and checks that JUCE messages are delivered through
+      # Tauri's event loop (the Phase 1 gate), then exits.
+      - name: Self-test
+        if: runner.os != 'Linux'
+        run: target/debug/waveform-desktop --self-test
+      - name: Self-test
+        if: runner.os == 'Linux'
+        run: xvfb-run -a target/debug/waveform-desktop --self-test

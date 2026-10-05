@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <style>
+    .mark { fill: #0e0e10 }
+    @media (prefers-color-scheme: dark) { .mark { fill: #fff } }
+  </style>
+  <defs>
+    <clipPath id="mark">
+      <circle cx="400" cy="400" r="400"/>
+    </clipPath>
+  </defs>
+  <g class="mark" clip-path="url(#mark)">
+    <rect width="100" height="800"/>
+    <rect x="140" y="300" width="100" height="500"/>
+    <rect x="280" y="120" width="100" height="680"/>
+    <rect x="420" y="200" width="100" height="600"/>
+    <rect x="560" width="100" height="800"/>
+    <rect x="700" y="100" width="100" height="700"/>
+  </g>
+</svg>

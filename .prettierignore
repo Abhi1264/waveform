@@ -1,0 +1,22 @@
+node_modules/
+dist/
+out/
+build/
+target/
+coverage/
+test-results/
+playwright-report/
+.next/
+.turbo/
+.cache/
+pnpm-lock.yaml
+next-env.d.ts
+
+# Generated
+packages/design-tokens/src/tokens.css
+apps/desktop/src/bindings.ts
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/icons/
+
+# Not ours to reformat
+.cursor/

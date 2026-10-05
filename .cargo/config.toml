@@ -1,0 +1,4 @@
+# Keep in step with CMAKE_OSX_DEPLOYMENT_TARGET (CMakeLists.txt) and
+# bundle.macOS.minimumSystemVersion (apps/desktop/src-tauri/tauri.conf.json).
+[env]
+MACOSX_DEPLOYMENT_TARGET = "14.0"

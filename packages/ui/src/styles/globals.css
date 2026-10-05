@@ -1,0 +1,257 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/martian-mono/wdth.css";
+@import "@waveform/design-tokens/tokens.css";
+
+/* Dark styles apply when the app chose dark, or follows a dark system. */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not(.light), :root:not(.light) *) {
+      @slot;
+    }
+  }
+}
+@source "../**/*.{ts,tsx}";
+
+@theme inline {
+  --font-sans: var(--wf-font-sans);
+  --font-heading: var(--wf-font-sans);
+  --font-mono: var(--wf-font-mono);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+
+  /* Waveform roles without a shadcn equivalent. */
+  --color-canvas: var(--wf-color-canvas);
+  --color-sunken: var(--wf-color-sunken);
+  --color-surface: var(--wf-color-surface);
+  --color-raised: var(--wf-color-raised);
+  --color-control: var(--wf-color-control);
+  --color-control-hover: var(--wf-color-control-hover);
+  --color-divider: var(--wf-color-divider);
+  --color-control-border: var(--wf-color-control-border);
+  --color-focus: var(--wf-color-focus);
+  --color-danger: var(--wf-color-danger);
+  --color-danger-surface: var(--wf-color-danger-surface);
+  --color-warning: var(--wf-color-warning);
+  --color-warning-surface: var(--wf-color-warning-surface);
+  --color-positive: var(--wf-color-positive);
+  --color-positive-surface: var(--wf-color-positive-surface);
+  --color-band-low: var(--wf-color-band-low);
+  --color-band-mid: var(--wf-color-band-mid);
+  --color-band-high: var(--wf-color-band-high);
+  --color-deck-a: var(--wf-color-deck-a);
+  --color-deck-b: var(--wf-color-deck-b);
+  --color-deck-c: var(--wf-color-deck-c);
+  --color-deck-d: var(--wf-color-deck-d);
+  --color-cue-1: var(--wf-color-cue-1);
+  --color-cue-2: var(--wf-color-cue-2);
+  --color-cue-3: var(--wf-color-cue-3);
+  --color-cue-4: var(--wf-color-cue-4);
+  --color-cue-5: var(--wf-color-cue-5);
+  --color-cue-6: var(--wf-color-cue-6);
+  --color-cue-7: var(--wf-color-cue-7);
+  --color-cue-8: var(--wf-color-cue-8);
+  --color-level-safe: var(--wf-color-level-safe);
+  --color-level-hot: var(--wf-color-level-hot);
+  --color-level-clip: var(--wf-color-level-clip);
+  --color-on-signal: var(--wf-color-on-signal);
+  /* The colour of the deck a control belongs to; see [data-deck] below. */
+  --color-deck: var(--deck-color);
+
+  --text-label: var(--wf-text-label-size);
+  --text-label--line-height: var(--wf-text-label-leading);
+  --text-label--letter-spacing: var(--wf-text-label-tracking);
+  --text-label--font-weight: var(--wf-text-label-weight);
+  --text-caption: var(--wf-text-caption-size);
+  --text-caption--line-height: var(--wf-text-caption-leading);
+  --text-body: var(--wf-text-body-size);
+  --text-body--line-height: var(--wf-text-body-leading);
+  --text-title: var(--wf-text-title-size);
+  --text-title--line-height: var(--wf-text-title-leading);
+  --text-title--font-weight: var(--wf-text-title-weight);
+  --text-heading: var(--wf-text-heading-size);
+  --text-heading--line-height: var(--wf-text-heading-leading);
+  --text-heading--letter-spacing: var(--wf-text-heading-tracking);
+  --text-heading--font-weight: var(--wf-text-heading-weight);
+  --text-display: var(--wf-text-display-size);
+  --text-display--line-height: var(--wf-text-display-leading);
+  --text-display--letter-spacing: var(--wf-text-display-tracking);
+  --text-display--font-weight: var(--wf-text-display-weight);
+  --text-readout-sm: var(--wf-text-readout-sm-size);
+  --text-readout-sm--line-height: var(--wf-text-readout-sm-leading);
+  --text-readout-sm--font-weight: var(--wf-text-readout-sm-weight);
+  --text-readout: var(--wf-text-readout-size);
+  --text-readout--line-height: var(--wf-text-readout-leading);
+  --text-readout--font-weight: var(--wf-text-readout-weight);
+  --text-readout-lg: var(--wf-text-readout-lg-size);
+  --text-readout-lg--line-height: var(--wf-text-readout-lg-leading);
+  --text-readout-lg--letter-spacing: var(--wf-text-readout-lg-tracking);
+  --text-readout-lg--font-weight: var(--wf-text-readout-lg-weight);
+  --text-readout-xl: var(--wf-text-readout-xl-size);
+  --text-readout-xl--line-height: var(--wf-text-readout-xl-leading);
+  --text-readout-xl--letter-spacing: var(--wf-text-readout-xl-tracking);
+  --text-readout-xl--font-weight: var(--wf-text-readout-xl-weight);
+
+  --spacing-control-sm: var(--wf-control-height-sm);
+  --spacing-control: var(--wf-control-height);
+  --spacing-control-lg: var(--wf-control-height-lg);
+  --spacing-control-x: var(--wf-control-padding-x);
+  --spacing-control-gap: var(--wf-control-gap);
+  --spacing-icon: var(--wf-icon-size);
+  --spacing-target: var(--wf-target-min);
+  --spacing-row: var(--wf-row-height);
+  --spacing-knob: var(--wf-knob-size);
+  --spacing-fader: var(--wf-fader-length);
+
+  --radius-sm: var(--wf-radius-sm);
+  --radius-md: var(--wf-radius-md);
+  --radius-lg: var(--wf-radius-lg);
+  --radius-xl: var(--wf-radius-xl);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --shadow-raised: var(--wf-shadow-raised);
+  --shadow-overlay: var(--wf-shadow-overlay);
+
+  --ease-standard: var(--wf-ease-standard);
+  --ease-enter: var(--wf-ease-enter);
+  --ease-exit: var(--wf-ease-exit);
+  --default-transition-duration: var(--wf-duration-base);
+  --default-transition-timing-function: var(--wf-ease-standard);
+}
+
+/* shadcn's variables, pointed at the design tokens. The tokens switch with the
+   theme, so there is no separate dark block. */
+:root {
+  --background: var(--wf-color-canvas);
+  --foreground: var(--wf-color-text);
+  --card: var(--wf-color-raised);
+  --card-foreground: var(--wf-color-text);
+  --popover: var(--wf-color-raised);
+  --popover-foreground: var(--wf-color-text);
+  --primary: var(--wf-color-primary);
+  --primary-foreground: var(--wf-color-primary-text);
+  --secondary: var(--wf-color-control);
+  --secondary-foreground: var(--wf-color-text);
+  --muted: var(--wf-color-control);
+  --muted-foreground: var(--wf-color-text-muted);
+  --accent: var(--wf-color-control-hover);
+  --accent-foreground: var(--wf-color-text);
+  --destructive: var(--wf-color-danger);
+  --border: var(--wf-color-divider);
+  --input: var(--wf-color-control-border);
+  --ring: var(--wf-color-focus);
+  --chart-1: var(--wf-color-deck-a);
+  --chart-2: var(--wf-color-deck-b);
+  --chart-3: var(--wf-color-deck-c);
+  --chart-4: var(--wf-color-deck-d);
+  --chart-5: var(--wf-color-cue-2);
+  --radius: 0.45rem;
+  --sidebar: var(--wf-color-surface);
+  --sidebar-foreground: var(--wf-color-text);
+  --sidebar-primary: var(--wf-color-primary);
+  --sidebar-primary-foreground: var(--wf-color-primary-text);
+  --sidebar-accent: var(--wf-color-control-hover);
+  --sidebar-accent-foreground: var(--wf-color-text);
+  --sidebar-border: var(--wf-color-divider);
+  --sidebar-ring: var(--wf-color-focus);
+}
+
+/* Hardware-style control labels. */
+@utility faceplate {
+  font-size: var(--wf-text-label-size);
+  line-height: var(--wf-text-label-leading);
+  font-weight: var(--wf-text-label-weight);
+  letter-spacing: var(--wf-text-label-tracking);
+  font-stretch: var(--wf-font-stretch-label);
+  text-transform: uppercase;
+}
+
+/* Numeric readouts: monospaced, narrowed, with digits that keep their place. */
+@utility readout {
+  font-family: var(--wf-font-mono);
+  font-stretch: var(--wf-font-stretch-readout);
+  font-variant-numeric: tabular-nums;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-body text-foreground antialiased;
+  }
+  [data-deck="a"] {
+    --deck-color: var(--wf-color-deck-a);
+  }
+  [data-deck="b"] {
+    --deck-color: var(--wf-color-deck-b);
+  }
+  [data-deck="c"] {
+    --deck-color: var(--wf-color-deck-c);
+  }
+  [data-deck="d"] {
+    --deck-color: var(--wf-color-deck-d);
+  }
+}
+
+/* Reduced motion: transitions use zero durations from the tokens; this also
+   stops CSS animations, including those from tw-animate-css. A region can pin
+   the preference with data-motion, the same way density is pinned. */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
