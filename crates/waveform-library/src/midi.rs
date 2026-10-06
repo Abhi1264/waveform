@@ -18,3 +18,13 @@ pub fn parse_midi(bytes: &[u8]) -> Option<MidiMessage> {
         data2: bytes[2],
     })
 }
+
+/// The command id for a message the engine also handles in real time.
+/// CC 1 is the crossfader. A note-on starts the sampler.
+pub fn command_for_midi(message: MidiMessage) -> Option<&'static str> {
+    match message.status & 0xF0 {
+        0xB0 if message.data1 == 1 => Some("mixer.crossfader"),
+        0x90 if message.data2 > 0 => Some("sampler.trigger"),
+        _ => None,
+    }
+}

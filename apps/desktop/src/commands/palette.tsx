@@ -21,19 +21,31 @@ function CommandPalette({ registry }: { registry: Registry }) {
       <ul className="flex flex-col gap-1">
         {commands.map((command) => (
           <li key={command.id}>
-            <button
-              type="button"
-              className="flex min-h-11 w-full items-center justify-between rounded-md px-3 text-left hover:bg-control disabled:opacity-50"
-              disabled={!command.available()}
-              onClick={() => {
-                registry.run(command.id)
-              }}
-            >
-              <span>{command.label}</span>
-              <span className="faceplate text-muted-foreground">
-                {command.shortcut}
-              </span>
-            </button>
+            <div className="flex min-h-11 items-center gap-2">
+              <button
+                type="button"
+                className="flex min-h-11 flex-1 items-center justify-between rounded-md px-3 text-left hover:bg-control disabled:opacity-50"
+                disabled={!command.available()}
+                onClick={() => {
+                  registry.run(command.id)
+                }}
+              >
+                <span>{command.label}</span>
+                {!command.available() && command.reason ? (
+                  <span className="text-caption text-muted-foreground">
+                    {command.reason}
+                  </span>
+                ) : null}
+              </button>
+              <input
+                aria-label={`Shortcut for ${command.label}`}
+                defaultValue={command.shortcut}
+                onBlur={(event) => {
+                  registry.setShortcut(command.id, event.target.value)
+                }}
+                className="w-28 rounded-md border border-divider bg-surface px-2 py-1"
+              />
+            </div>
           </li>
         ))}
       </ul>

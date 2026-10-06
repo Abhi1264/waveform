@@ -30,6 +30,10 @@ public:
     [[nodiscard]] double positionSamples() const noexcept;
     [[nodiscard]] bool ready() const noexcept;
     [[nodiscard]] std::vector<float> peaks() const;
+    [[nodiscard]] float bpm() const noexcept { return bpm_; }
+    [[nodiscard]] const std::string& key() const noexcept { return key_; }
+    [[nodiscard]] const std::vector<double>& beats() const noexcept { return beats_; }
+    [[nodiscard]] double durationSeconds() const noexcept;
 
 private:
     void stopLoader();
@@ -45,6 +49,9 @@ private:
 
     Chunk chunks_[kChunkCount];
     std::vector<float> peaks_;
+    std::vector<double> beats_;
+    std::string key_;
+    float bpm_ = 0.0f;
     std::atomic<double> position_{0.0};
     std::atomic<bool> stop_{false};
     std::atomic<bool> active_{false};

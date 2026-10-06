@@ -12,6 +12,7 @@ Play Store builds stay blocked until the app licence and the JUCE licence allow 
 
 ## Layout
 
-Touch density already uses 44 px targets. The command palette buttons use that minimum
-height. Portrait and landscape arrangements of the same decks are still to be drawn against
-a device, not inferred from a desktop window.
+Touch density already uses 44 px targets. The command palette buttons and the bottom sheet
+summary use that minimum height. `TabletFrame` stacks the decks in portrait and places them
+side by side in landscape. The waveform seeks from a pointer press. No simulator was run:
+there is still no Android or iPad project, and no tablet was attached.

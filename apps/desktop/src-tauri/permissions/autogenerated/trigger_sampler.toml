@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-trigger-sampler"
+description = "Enables the trigger_sampler command without any pre-configured scope."
+commands.allow = ["trigger_sampler"]
+
+[[permission]]
+identifier = "deny-trigger-sampler"
+description = "Denies the trigger_sampler command without any pre-configured scope."
+commands.deny = ["trigger_sampler"]

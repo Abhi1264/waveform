@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-beat-jump"
+description = "Enables the beat_jump command without any pre-configured scope."
+commands.allow = ["beat_jump"]
+
+[[permission]]
+identifier = "deny-beat-jump"
+description = "Denies the beat_jump command without any pre-configured scope."
+commands.deny = ["beat_jump"]

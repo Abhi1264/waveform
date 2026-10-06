@@ -90,6 +90,12 @@ void session_command(engine::Session& session, std::uint8_t kind, std::uint8_t d
     case engine::CommandKind::SetHotCue:
     case engine::CommandKind::JumpHotCue:
     case engine::CommandKind::Sync:
+    case engine::CommandKind::Seek:
+    case engine::CommandKind::BeatJump:
+    case engine::CommandKind::SetEffect:
+    case engine::CommandKind::ArmRecord:
+    case engine::CommandKind::TriggerSampler:
+    case engine::CommandKind::SetInputGain:
         session.command(kind, deck, value, 0.0f, 0);
         break;
     }
@@ -142,6 +148,27 @@ rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck) {
         peaks.push_back(peak);
     }
     return peaks;
+}
+
+rust::Vec<float> deck_beats(const engine::Session& session, std::uint8_t deck) {
+    rust::Vec<float> beats;
+    for (float beat : session.beats(static_cast<int>(deck))) {
+        beats.push_back(beat);
+    }
+    return beats;
+}
+
+rust::String write_recording(engine::Session& session, rust::Str path) {
+    return rust::String(session.writeRecording(std::string(path.data(), path.size())));
+}
+
+DeckAnalysis deck_analysis(const engine::Session& session, std::uint8_t deck) {
+    const int index = static_cast<int>(deck);
+    return DeckAnalysis{
+        .bpm = session.bpm(index),
+        .musical_key = rust::String(session.key(index)),
+        .duration_seconds = static_cast<float>(session.duration(index)),
+    };
 }
 
 } // namespace waveform::bridge

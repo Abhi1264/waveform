@@ -19,7 +19,14 @@ the engine can be called safely from Rust.
 | `apps/desktop/src-tauri`                  | Starts the runtime when the app starts, and serves `engine_info` to the About view.                                  |
 
 Phase 3 adds device discovery, two tone decks, transport, the mixer, and the lock-free
-command and snapshot paths. Music files are not decoded yet (ADR-021).
+command and snapshot paths. File playback is a chunked cache (ADR-021).
+
+The mixer now has four decks. A and B sit on the crossfader; C and D sum at unity. Commands
+cover seek, pitch, 3-band EQ, a loop, eight hot cues, beat jump, sync, a low-pass, a delay,
+a short reverb, a sampler pad, master recording, and an input gain. Beat times come from
+the analysis of the first eight seconds of a file. Sync is a tempo ratio and stays at unity
+until a tempo exists. A 128-frame buffer with four decks and those effects took 24 µs in a
+debug offline render on this Mac (6 October 2026); the budget at 48 kHz is 2.67 ms.
 
 ## The JUCE runtime
 

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-collection-tracks"
+description = "Enables the collection_tracks command without any pre-configured scope."
+commands.allow = ["collection_tracks"]
+
+[[permission]]
+identifier = "deny-collection-tracks"
+description = "Denies the collection_tracks command without any pre-configured scope."
+commands.deny = ["collection_tracks"]

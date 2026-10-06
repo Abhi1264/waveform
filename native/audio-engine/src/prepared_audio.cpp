@@ -1,3 +1,4 @@
+#include <waveform/dsp/analysis.hpp>
 #include <waveform/engine/prepared_audio.hpp>
 
 #include <algorithm>
@@ -35,6 +36,9 @@ std::string PreparedAudio::load(const std::string& path) {
     }
     position_.store(0.0, std::memory_order_relaxed);
     peaks_.clear();
+    beats_.clear();
+    key_.clear();
+    bpm_ = 0.0f;
 
     juce::AudioFormatManager local;
     local.registerBasicFormats();
@@ -48,6 +52,10 @@ std::string PreparedAudio::load(const std::string& path) {
 
     const auto windows = static_cast<std::size_t>((fileLength_ + kPeakWindow - 1) / kPeakWindow);
     peaks_.assign(windows * 2, 0.0f);
+    const auto analyseFrames =
+        static_cast<std::size_t>(std::min<std::int64_t>(fileLength_, static_cast<std::int64_t>(fileRate_ * 8.0)));
+    std::vector<float> mono(analyseFrames);
+    std::size_t monoCount = 0;
     std::vector<float> left(static_cast<std::size_t>(kPeakWindow));
     std::vector<float> right(static_cast<std::size_t>(kPeakWindow));
     for (std::int64_t start = 0; start < fileLength_; start += kPeakWindow) {
@@ -66,7 +74,17 @@ std::string PreparedAudio::load(const std::string& path) {
         const auto window = static_cast<std::size_t>(start / kPeakWindow);
         peaks_[window * 2] = minimum;
         peaks_[window * 2 + 1] = maximum;
+        for (int index = 0; index < count && monoCount < mono.size(); ++index) {
+            mono[monoCount] = (left[static_cast<std::size_t>(index)] +
+                               right[static_cast<std::size_t>(index)]) *
+                              0.5f;
+            ++monoCount;
+        }
     }
+    const auto analysis = dsp::analyse(mono.data(), static_cast<int>(monoCount), fileRate_);
+    bpm_ = analysis.bpm;
+    key_ = analysis.key;
+    beats_ = analysis.beats;
 
     active_.store(true, std::memory_order_release);
     loader_ = std::thread([this] { loaderMain(); });
@@ -170,6 +188,13 @@ bool PreparedAudio::ready() const noexcept {
 
 std::vector<float> PreparedAudio::peaks() const {
     return peaks_;
+}
+
+double PreparedAudio::durationSeconds() const noexcept {
+    if (fileRate_ <= 0.0) {
+        return 0.0;
+    }
+    return static_cast<double>(fileLength_) / fileRate_;
 }
 
 } // namespace waveform::engine

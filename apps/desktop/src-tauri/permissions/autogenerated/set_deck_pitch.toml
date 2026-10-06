@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-deck-pitch"
+description = "Enables the set_deck_pitch command without any pre-configured scope."
+commands.allow = ["set_deck_pitch"]
+
+[[permission]]
+identifier = "deny-set-deck-pitch"
+description = "Denies the set_deck_pitch command without any pre-configured scope."
+commands.deny = ["set_deck_pitch"]

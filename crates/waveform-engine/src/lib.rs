@@ -6,7 +6,7 @@
 use std::thread::{self, ThreadId};
 use std::time::Duration;
 
-pub use ffi::{AudioSnapshot, BuildInfo, OutputDevice};
+pub use ffi::{AudioSnapshot, BuildInfo, DeckAnalysis, OutputDevice};
 
 // The bridge expands to the unsafe FFI glue; cxx checks every signature against
 // the C++ declarations at build time.
@@ -31,6 +31,13 @@ mod ffi {
     struct OutputDevice {
         type_name: String,
         name: String,
+    }
+
+    /// Tempo, key and length for a loaded deck.
+    struct DeckAnalysis {
+        bpm: f32,
+        musical_key: String,
+        duration_seconds: f32,
     }
 
     /// The latest state published by the audio thread.
@@ -86,6 +93,9 @@ mod ffi {
         fn render_offline(session: Pin<&mut Session>, interleaved: &mut [f32], sample_rate: f64);
         fn load_deck_file(session: Pin<&mut Session>, deck: u8, path: &str) -> String;
         fn deck_peaks(session: &Session, deck: u8) -> Vec<f32>;
+        fn deck_analysis(session: &Session, deck: u8) -> DeckAnalysis;
+        fn deck_beats(session: &Session, deck: u8) -> Vec<f32>;
+        fn write_recording(session: Pin<&mut Session>, path: &str) -> String;
     }
 }
 
@@ -166,6 +176,12 @@ pub enum Transport {
     SetHotCue = 10,
     JumpHotCue = 11,
     Sync = 12,
+    Seek = 13,
+    BeatJump = 14,
+    SetEffect = 15,
+    ArmRecord = 16,
+    TriggerSampler = 17,
+    SetInputGain = 18,
 }
 
 /// Two tone decks and an output device. Requires a running [`Runtime`].
@@ -263,6 +279,21 @@ impl Session {
     /// Interleaved min/max peak pairs for a loaded file.
     pub fn peaks(&self, deck: u8) -> Vec<f32> {
         ffi::deck_peaks(&self.inner, deck)
+    }
+
+    /// Tempo, key and duration after a file has been analysed.
+    pub fn analysis(&self, deck: u8) -> DeckAnalysis {
+        ffi::deck_analysis(&self.inner, deck)
+    }
+
+    /// Beat times in seconds for a loaded file.
+    pub fn beats(&self, deck: u8) -> Vec<f32> {
+        ffi::deck_beats(&self.inner, deck)
+    }
+
+    /// Writes the armed master recording. The error string is empty on success.
+    pub fn write_recording(&mut self, path: &str) -> Result<(), EngineError> {
+        empty_is_ok(ffi::write_recording(self.inner.pin_mut(), path))
     }
 
     /// Mixes `frames` of stereo audio without opening a device.

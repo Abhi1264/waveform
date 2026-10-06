@@ -72,6 +72,12 @@ impl Engine {
             .map_err(|error| error.to_string())
     }
 
+    /// Tempo, key and duration for a loaded deck.
+    pub fn analysis(&self, deck: u8) -> Result<waveform_engine::DeckAnalysis, String> {
+        let guard = self.session()?;
+        Ok(guard.as_ref().expect("checked").analysis(deck))
+    }
+
     /// Peak pairs for a deck that has a file loaded.
     pub fn peaks(&self, deck: u8) -> Result<Vec<f32>, String> {
         let guard = self.session()?;
@@ -384,12 +390,147 @@ pub fn set_deck_loop(
     })
 }
 
+/// Tempo, key and length of a loaded deck. Sync stays off until a tempo exists.
+#[derive(Debug, Clone, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct DeckAnalysis {
+    bpm: f32,
+    musical_key: String,
+    duration_seconds: f32,
+}
+
+/// Tempo, key and length of a loaded deck.
+#[tauri::command]
+#[specta::specta]
+pub fn deck_analysis(engine: State<'_, Engine>, deck: u8) -> Result<DeckAnalysis, String> {
+    let analysis = engine.analysis(deck)?;
+    Ok(DeckAnalysis {
+        bpm: analysis.bpm,
+        musical_key: analysis.musical_key,
+        duration_seconds: analysis.duration_seconds,
+    })
+}
+
 /// The latest engine snapshot.
 #[tauri::command]
 #[specta::specta]
 pub fn audio_snapshot(engine: State<'_, Engine>) -> Result<AudioSnapshot, String> {
     let guard = engine.session()?;
     Ok(published(guard.as_ref().expect("checked").snapshot()))
+}
+
+fn mix(
+    engine: &Engine,
+    command: Transport,
+    deck: u8,
+    value: f32,
+    value2: f32,
+    slot: u8,
+) -> Result<(), String> {
+    with_session(engine, |session| {
+        session
+            .command(command, deck, value, value2, slot)
+            .map_err(|error| error.to_string())
+    })
+}
+
+/// Moves a deck to a position in seconds.
+#[tauri::command]
+#[specta::specta]
+pub fn seek_deck(engine: State<'_, Engine>, deck: u8, seconds: f32) -> Result<(), String> {
+    mix(&engine, Transport::Seek, deck, seconds, 0.0, 0)
+}
+
+/// Sets playback rate. 1 is the original tempo.
+#[tauri::command]
+#[specta::specta]
+pub fn set_deck_pitch(engine: State<'_, Engine>, deck: u8, pitch: f32) -> Result<(), String> {
+    mix(&engine, Transport::SetPitch, deck, pitch, 0.0, 0)
+}
+
+/// Stores a hot cue. `slot` is 0 to 7 and `seconds` is the position.
+#[tauri::command]
+#[specta::specta]
+pub fn set_hot_cue(
+    engine: State<'_, Engine>,
+    deck: u8,
+    slot: u8,
+    seconds: f32,
+) -> Result<(), String> {
+    mix(&engine, Transport::SetHotCue, deck, seconds, 0.0, slot)
+}
+
+/// Jumps to a stored hot cue.
+#[tauri::command]
+#[specta::specta]
+pub fn jump_hot_cue(engine: State<'_, Engine>, deck: u8, slot: u8) -> Result<(), String> {
+    mix(&engine, Transport::JumpHotCue, deck, 0.0, 0.0, slot)
+}
+
+/// Jumps by a number of beats. Negative values jump backward.
+#[tauri::command]
+#[specta::specta]
+pub fn beat_jump(engine: State<'_, Engine>, deck: u8, beats: f32) -> Result<(), String> {
+    mix(&engine, Transport::BeatJump, deck, beats, 0.0, 0)
+}
+
+/// Sets one effect. `slot` 0 is the filter, 1 the delay, 2 the reverb. `amount` is 0 to 1.
+#[tauri::command]
+#[specta::specta]
+pub fn set_effect(
+    engine: State<'_, Engine>,
+    deck: u8,
+    slot: u8,
+    amount: f32,
+) -> Result<(), String> {
+    mix(&engine, Transport::SetEffect, deck, amount, 0.0, slot)
+}
+
+/// Arms or stops the master recording.
+#[tauri::command]
+#[specta::specta]
+pub fn arm_recording(engine: State<'_, Engine>, armed: bool) -> Result<(), String> {
+    mix(
+        &engine,
+        Transport::ArmRecord,
+        0,
+        if armed { 1.0 } else { 0.0 },
+        0.0,
+        0,
+    )
+}
+
+/// Plays the built-in sampler pad.
+#[tauri::command]
+#[specta::specta]
+pub fn trigger_sampler(engine: State<'_, Engine>) -> Result<(), String> {
+    mix(&engine, Transport::TriggerSampler, 0, 0.0, 0.0, 0)
+}
+
+/// Linear gain for a device input that is already open. 0 leaves it silent.
+#[tauri::command]
+#[specta::specta]
+pub fn set_input_gain(engine: State<'_, Engine>, gain: f32) -> Result<(), String> {
+    mix(&engine, Transport::SetInputGain, 0, gain, 0.0, 0)
+}
+
+/// Beat times in seconds. Empty until analysis has a grid.
+#[tauri::command]
+#[specta::specta]
+pub fn deck_beats(engine: State<'_, Engine>, deck: u8) -> Result<Vec<f32>, String> {
+    let guard = engine.session()?;
+    Ok(guard.as_ref().expect("checked").beats(deck))
+}
+
+/// Writes the armed recording to a wav file.
+#[tauri::command]
+#[specta::specta]
+pub fn save_recording(engine: State<'_, Engine>, path: String) -> Result<(), String> {
+    with_session(&engine, |session| {
+        session
+            .write_recording(&path)
+            .map_err(|error| error.to_string())
+    })
 }
 
 /// Streams snapshots until the next call replaces it, or the webview goes away.

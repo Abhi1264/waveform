@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import { Button } from "@waveform/ui/components/button"
 import { Fader } from "@waveform/ui/components/fader"
+import { Knob } from "@waveform/ui/components/knob"
 import { LevelMeter } from "@waveform/ui/components/level-meter"
 
 import type { AudioSnapshot, OutputDevice } from "@/bindings"
@@ -17,8 +18,26 @@ interface AudioApi {
   cueDeck: (deck: number) => Promise<void>
   setCrossfader: (position: number) => Promise<void>
   loadDeckFile: (deck: number, path: string) => Promise<number[]>
+  deckAnalysis: (
+    deck: number
+  ) => Promise<{
+    bpm: number | null
+    musicalKey: string
+    durationSeconds: number | null
+  }>
+  deckBeats: (deck: number) => Promise<number[]>
   syncDeck: (deck: number) => Promise<void>
   setDeckLoop: (deck: number, start: number, end: number) => Promise<void>
+  seekDeck: (deck: number, seconds: number) => Promise<void>
+  setDeckPitch: (deck: number, pitch: number) => Promise<void>
+  setDeckEq: (deck: number, band: number, decibels: number) => Promise<void>
+  setHotCue: (deck: number, slot: number, seconds: number) => Promise<void>
+  jumpHotCue: (deck: number, slot: number) => Promise<void>
+  beatJump: (deck: number, beats: number) => Promise<void>
+  setEffect: (deck: number, slot: number, amount: number) => Promise<void>
+  armRecording: (armed: boolean) => Promise<void>
+  triggerSampler: () => Promise<void>
+  saveRecording: (path: string) => Promise<void>
   audioSnapshot: () => Promise<AudioSnapshot>
   watchAudio: (
     onSnapshot: (snapshot: AudioSnapshot) => void
@@ -62,6 +81,15 @@ function AudioPanel({ api }: { api: AudioApi }) {
   const [error, setError] = useState("")
   const [filePath, setFilePath] = useState("")
   const [peaks, setPeaks] = useState<number[]>(tonePeaks)
+  const [analysis, setAnalysis] = useState({
+    bpm: null as number | null,
+    musicalKey: "",
+    durationSeconds: 8,
+    beats: [] as number[],
+  })
+  const [cues, setCues] = useState<Record<string, number>>({})
+  const [recordingPath, setRecordingPath] = useState("")
+  const [recording, setRecording] = useState(false)
   const deck = useDeckSelection((state) => state.deck)
   const selectDeck = useDeckSelection((state) => state.select)
 
@@ -69,7 +97,9 @@ function AudioPanel({ api }: { api: AudioApi }) {
     let stop: () => void = () => undefined
     api
       .listOutputDevices()
-      .then(setDevices)
+      .then((next) => {
+        setDevices(Array.isArray(next) ? next : [])
+      })
       .catch((reason: unknown) => {
         setError(reason instanceof Error ? reason.message : String(reason))
       })
@@ -100,7 +130,8 @@ function AudioPanel({ api }: { api: AudioApi }) {
         Audio
       </h2>
       <p className="text-muted-foreground">
-        Two tone decks through the engine. Music files arrive in a later phase.
+        Load a wav or aiff file, or play the built-in tones. Sync waits until a
+        tempo has been found.
       </p>
       <p className="readout text-readout-sm" role="status">
         {formatRate(snapshot)}
@@ -116,7 +147,18 @@ function AudioPanel({ api }: { api: AudioApi }) {
             .loadDeckFile(deck, path)
             .then((nextPeaks) => {
               if (nextPeaks.length > 0) setPeaks(nextPeaks)
+              return api.deckAnalysis(deck)
             })
+            .then((next) =>
+              api.deckBeats(deck).then((beats) => {
+                setAnalysis({
+                  bpm: next.bpm,
+                  musicalKey: next.musicalKey,
+                  durationSeconds: next.durationSeconds ?? 8,
+                  beats,
+                })
+              })
+            )
             .catch((reason: unknown) => {
               setError(
                 reason instanceof Error ? reason.message : String(reason)
@@ -144,9 +186,21 @@ function AudioPanel({ api }: { api: AudioApi }) {
             ? snapshot.deckAPositionSeconds
             : snapshot.deckBPositionSeconds) ?? 0
         }
-        durationSeconds={8}
+        durationSeconds={
+          analysis.durationSeconds > 0 ? analysis.durationSeconds : 8
+        }
+        beats={analysis.beats}
         color={deck === 0 ? "#0574c7" : "#af4387"}
+        onSeek={(seconds) => {
+          run(() => api.seekDeck(deck, seconds))
+        }}
       />
+      <p className="readout text-readout">
+        {analysis.musicalKey || "—"}
+        <span className="faceplate text-muted-foreground"> key </span>
+        {analysis.bpm == null ? "—" : analysis.bpm.toFixed(1)}
+        <span className="faceplate text-muted-foreground"> BPM</span>
+      </p>
       {error ? (
         <p role="alert" className="text-destructive">
           {error}
@@ -214,6 +268,7 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 </Button>
                 <Button
                   variant="outline"
+                  isDisabled={analysis.beats.length === 0}
                   onPress={() => {
                     selectDeck(deck)
                     run(() => api.syncDeck(deck))
@@ -230,6 +285,54 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 >
                   Loop
                 </Button>
+                <Button
+                  variant="outline"
+                  onPress={() => {
+                    selectDeck(deck)
+                    run(() => api.beatJump(deck, -1))
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  variant="outline"
+                  onPress={() => {
+                    selectDeck(deck)
+                    run(() => api.beatJump(deck, 1))
+                  }}
+                >
+                  Forward
+                </Button>
+                {[0, 1, 2, 3].map((slot) => {
+                  const key = `${deck}:${slot}`
+                  const stored = cues[key]
+                  return (
+                    <Button
+                      key={key}
+                      variant="outline"
+                      onPress={() => {
+                        selectDeck(deck)
+                        const position =
+                          (deck === 0
+                            ? snapshot.deckAPositionSeconds
+                            : snapshot.deckBPositionSeconds) ?? 0
+                        if (stored === undefined) {
+                          setCues((current) => ({
+                            ...current,
+                            [key]: position,
+                          }))
+                          run(() => api.setHotCue(deck, slot, position))
+                        } else {
+                          run(() => api.jumpHotCue(deck, slot))
+                        }
+                      }}
+                    >
+                      {stored === undefined
+                        ? `Cue ${slot + 1}`
+                        : `Jump ${slot + 1}`}
+                    </Button>
+                  )
+                })}
               </div>
               <LevelMeter
                 label={`Deck ${deck === 0 ? "A" : "B"} level`}
@@ -254,6 +357,103 @@ function AudioPanel({ api }: { api: AudioApi }) {
           }}
         />
       </div>
+      <div className="flex flex-wrap items-end gap-4">
+        {(
+          [
+            ["Low", 0],
+            ["Mid", 1],
+            ["High", 2],
+          ] as const
+        ).map(([label, band]) => (
+          <Knob
+            key={label}
+            label={label}
+            minValue={-24}
+            maxValue={12}
+            step={0.1}
+            defaultValue={0}
+            formatValue={(value) => `${value.toFixed(1)} dB`}
+            onChange={(value) => {
+              run(() => api.setDeckEq(deck, band, value))
+            }}
+          />
+        ))}
+        <Knob
+          label="Pitch"
+          minValue={0.5}
+          maxValue={2}
+          step={0.01}
+          defaultValue={1}
+          formatValue={(value) => value.toFixed(2)}
+          onChange={(value) => {
+            run(() => api.setDeckPitch(deck, value))
+          }}
+        />
+        {(
+          [
+            ["Filter", 0],
+            ["Delay", 1],
+            ["Reverb", 2],
+          ] as const
+        ).map(([label, slot]) => (
+          <Knob
+            key={label}
+            label={label}
+            minValue={0}
+            maxValue={1}
+            step={0.01}
+            defaultValue={0}
+            formatValue={(value) => value.toFixed(2)}
+            onChange={(value) => {
+              run(() => api.setEffect(deck, slot, value))
+            }}
+          />
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          onPress={() => {
+            run(api.triggerSampler)
+          }}
+        >
+          Sampler
+        </Button>
+        <Button
+          variant="outline"
+          onPress={() => {
+            const next = !recording
+            setRecording(next)
+            run(() => api.armRecording(next))
+          }}
+        >
+          {recording ? "Stop recording" : "Record"}
+        </Button>
+      </div>
+      <form
+        className="flex flex-wrap gap-2"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const path = recordingPath.trim()
+          if (path.length === 0) return
+          run(() => api.saveRecording(path))
+        }}
+      >
+        <label className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="faceplate text-muted-foreground">Recording</span>
+          <input
+            value={recordingPath}
+            onChange={(event) => {
+              setRecordingPath(event.target.value)
+            }}
+            placeholder="Path for the recorded wav"
+            className="rounded-md border border-divider bg-surface px-3 py-2"
+          />
+        </label>
+        <Button type="submit" variant="outline">
+          Save recording
+        </Button>
+      </form>
     </section>
   )
 }

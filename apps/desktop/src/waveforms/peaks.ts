@@ -1,9 +1,21 @@
+/** Beat times as fractions of the track, for the waveform overlay. */
+function beatFractions(
+  beats: readonly number[],
+  durationSeconds: number
+): number[] {
+  if (durationSeconds <= 0) return []
+  return beats
+    .filter((beat) => beat >= 0 && beat <= durationSeconds)
+    .map((beat) => beat / durationSeconds)
+}
+
 /** Draws a peak envelope. `peaks` alternates minimum and maximum per column. */
 function drawPeaks(
   context: CanvasRenderingContext2D,
   peaks: ArrayLike<number>,
   playhead: number,
-  color: string
+  color: string,
+  beats: readonly number[] = []
 ) {
   const { width, height } = context.canvas
   context.clearRect(0, 0, width, height)
@@ -22,9 +34,15 @@ function drawPeaks(
       Math.max(1, bottom - top)
     )
   }
+  context.globalAlpha = 0.35
+  for (const beat of beats) {
+    const x = Math.min(width, Math.max(0, beat)) * width
+    context.fillRect(x, 0, 1, height)
+  }
+  context.globalAlpha = 1
   const x = Math.min(width, Math.max(0, playhead)) * width
   context.fillStyle = color
   context.fillRect(x, 0, 1, height)
 }
 
-export { drawPeaks }
+export { beatFractions, drawPeaks }

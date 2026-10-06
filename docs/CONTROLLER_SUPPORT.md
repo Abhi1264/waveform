@@ -11,8 +11,12 @@ machine with a controller attached.
 
 The library to use is [hidapi](https://github.com/libusb/hidapi) via the Rust crate `hidapi`.
 It was not linked in this tree: it needs a native HID stack on each platform, and no
-controller was attached while this was written. Mappings will store command ids from the
-registry in `apps/desktop/src/commands/registry.ts`.
+controller was attached while this was written.
+
+Mappings store a control name and a command id in `controller_mappings`, and the same pair
+in the desktop command registry. Time-critical MIDI does not wait for the webview: CC 1
+sets the crossfader and a note-on starts the sampler inside the mixer (`Mixer::applyMidi`).
+`command_for_midi` returns the matching command id for the registry.
 
 ## ASIO
 

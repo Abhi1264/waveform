@@ -5,6 +5,8 @@
 #include <waveform/engine/prepared_audio.hpp>
 #include <waveform/engine/snapshot.hpp>
 
+#include <atomic>
+#include <cstdint>
 #include <string>
 
 #include <vector>
@@ -24,6 +26,22 @@ public:
     /// Decodes `path` on a loader thread into deck `deck`. Empty string on success.
     [[nodiscard]] std::string loadFile(int deck, const std::string& path);
     [[nodiscard]] std::vector<float> peaks(int deck) const;
+    [[nodiscard]] float bpm(int deck) const;
+    [[nodiscard]] std::string key(int deck) const;
+    [[nodiscard]] double duration(int deck) const;
+    /// Beat times in seconds. Empty until a file has been analysed.
+    [[nodiscard]] std::vector<float> beats(int deck) const;
+
+    /// Adds a device input onto an already-rendered stereo buffer. No allocation.
+    void addInput(float* interleavedStereo, const float* const* input, int channels,
+                  int frames) noexcept;
+
+    /// Copies the master recording into `destination`. Returns the number of samples.
+    [[nodiscard]] int copyRecording(float* destination, int capacity) const;
+    [[nodiscard]] int recordingCapacity() const noexcept;
+
+    /// Applies one MIDI channel message on the audio thread. CC 1 is the crossfader.
+    void applyMidi(std::uint8_t status, std::uint8_t data1, std::uint8_t data2) noexcept;
 
     /// Applies every queued command, then mixes `frames` of stereo output into
     /// `interleavedStereo`. `frames` must be no greater than the prepared maximum.
@@ -49,16 +67,33 @@ private:
         float hotCues[8] = {};
         float bpm = 120.0f;
         float lowState = 0.0f;
+        float filterAmount = 0.0f;
+        float filterState = 0.0f;
+        float delayMix = 0.0f;
+        float reverbMix = 0.0f;
+        float reverbState = 0.0f;
+        int delayCursor = 0;
     };
 
     void apply(const Command& command) noexcept;
-    void renderDeck(Deck& deck, float* interleavedStereo, int frames, float& levelDb) noexcept;
+    void renderDeck(int deckIndex, Deck& deck, float* interleavedStereo, int frames,
+                    float& levelDb) noexcept;
+    void fillSampler() noexcept;
 
     Deck decks_[4]{};
     float crossfader_ = 0.5f;
+    float inputGain_ = 0.0f;
+    bool recording_ = false;
     double sampleRate_ = 48000.0;
     int maxFrames_ = 0;
+    int delayFrames_ = 1;
+    int samplerFrames_ = 1;
+    int samplerCursor_ = 1;
+    std::atomic<int> recordCount_{0};
     std::vector<float> scratch_;
+    std::vector<float> delay_;
+    std::vector<float> record_;
+    std::vector<float> sampler_;
 };
 
 } // namespace waveform::engine

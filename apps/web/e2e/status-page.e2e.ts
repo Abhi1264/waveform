@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright"
 import { expect, test } from "@playwright/test"
 
 test("says what Waveform is and where it stands", async ({ page }) => {
@@ -12,6 +13,16 @@ test("says what Waveform is and where it stands", async ({ page }) => {
   await expect(
     page.getByText("There is nothing to download yet.")
   ).toBeVisible()
+})
+
+test("has no serious or critical axe violations", async ({ page }) => {
+  await page.goto("/")
+  const results = await new AxeBuilder({ page }).analyze()
+  const blocking = results.violations.filter(
+    (violation) =>
+      violation.impact === "serious" || violation.impact === "critical"
+  )
+  expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([])
 })
 
 test("loads without errors", async ({ page }) => {

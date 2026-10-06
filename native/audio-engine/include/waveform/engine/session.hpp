@@ -49,6 +49,13 @@ public:
     /// interleaved min/max floats from that decode.
     [[nodiscard]] std::string loadFile(int deck, const std::string& path);
     [[nodiscard]] std::vector<float> peaks(int deck) const;
+    [[nodiscard]] float bpm(int deck) const;
+    [[nodiscard]] std::string key(int deck) const;
+    [[nodiscard]] double duration(int deck) const;
+    [[nodiscard]] std::vector<float> beats(int deck) const;
+
+    /// Writes the armed master recording as a wav file. Empty string on success.
+    [[nodiscard]] std::string writeRecording(const std::string& path);
 
     /// Mixes without a device. `sampleRate` and `frames` may differ from the
     /// open device; a change of rate rebuilds the mixer the way a device would.

@@ -10,8 +10,14 @@ of an existing file, the crate copies it to `library.sqlite.bak`.
 ## Schema
 
 `tracks` holds one row per content hash: path, title, artist, optional duration, BPM, key,
-and a failure string when the file could not be read. `track_search` is an FTS5 table over
-title and artist. Migrations live in `schema.rs` and run through `rusqlite_migration`.
+rating, notes, and a failure string when the file could not be read. `track_search` is an
+FTS5 table over title and artist. `collections` stores playlists, crates, and smart
+playlists (a tempo and key filter). `collection_tracks`, `track_tags`, `play_history`, and
+`controller_mappings` hang off that. Migrations live in `schema.rs` and run through
+`rusqlite_migration`.
+
+Local files are the only music source (`local_file_source`). It can edit metadata and
+cannot stream or download. A later streaming source would be another value of that type.
 
 Large bytes (peaks, artwork, stems) are files named by the content hash, as in
 [ARCHITECTURE.md](ARCHITECTURE.md). The hash is BLAKE3 (see below).
@@ -32,4 +38,5 @@ is authoritative because MediaBunny cannot read AIFF or ALAC.
 ## Tests
 
 `cargo test -p waveform-library` covers migration, search, a corrupt file, a background
-import that returns before the worker finishes, and the 100,000-file hash.
+import that returns before the worker finishes, playlists, smart playlists, ratings, tags,
+history, folders, mappings, and the 100,000-file hash.

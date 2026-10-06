@@ -25,6 +25,18 @@ enum class CommandKind : std::uint8_t {
     JumpHotCue,
     /// Match this deck's pitch to the other deck's tempo.
     Sync,
+    /// `value` is a position in seconds.
+    Seek,
+    /// `value` is a number of beats, and may be negative.
+    BeatJump,
+    /// `slot` 0 is a low-pass amount, 1 delay mix, 2 reverb mix. `value` is 0 to 1.
+    SetEffect,
+    /// `value` at least 0.5 arms the master recording.
+    ArmRecord,
+    /// Starts the built-in sampler pad from the beginning.
+    TriggerSampler,
+    /// `value` is a linear gain for a device input, 0 to 1.
+    SetInputGain,
 };
 
 struct Command {

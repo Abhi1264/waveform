@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-effect"
+description = "Enables the set_effect command without any pre-configured scope."
+commands.allow = ["set_effect"]
+
+[[permission]]
+identifier = "deny-set-effect"
+description = "Denies the set_effect command without any pre-configured scope."
+commands.deny = ["set_effect"]

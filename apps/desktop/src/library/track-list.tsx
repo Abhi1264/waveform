@@ -14,9 +14,11 @@ const viewHeight = 240
 function TrackList({
   tracks,
   onOpen,
+  onRate,
 }: {
   tracks: readonly TrackRow[]
   onOpen: (path: string) => void
+  onRate?: (id: number) => void
 }) {
   const [scrollTop, setScrollTop] = useState(0)
   const start = Math.min(tracks.length, Math.floor(scrollTop / rowHeight))
@@ -34,20 +36,35 @@ function TrackList({
     >
       <div style={{ height: tracks.length * rowHeight, position: "relative" }}>
         {visible.map((track, index) => (
-          <button
+          <div
             key={track.id}
-            type="button"
-            className="absolute inset-x-0 flex items-baseline gap-3 px-3 text-left hover:bg-control"
+            className="absolute inset-x-0"
             style={{ top: (start + index) * rowHeight, height: rowHeight }}
-            onClick={() => {
-              onOpen(track.path)
-            }}
           >
-            <span className="truncate">{track.title}</span>
-            <span className="truncate text-caption text-muted-foreground">
-              {track.artist}
-            </span>
-          </button>
+            <button
+              type="button"
+              className="flex h-full w-full items-baseline gap-3 px-3 text-left hover:bg-control"
+              onClick={() => {
+                onOpen(track.path)
+              }}
+            >
+              <span className="truncate">{track.title}</span>
+              <span className="truncate text-caption text-muted-foreground">
+                {track.artist}
+              </span>
+            </button>
+            {onRate ? (
+              <button
+                type="button"
+                className="absolute top-0 right-2 h-full text-caption"
+                onClick={() => {
+                  onRate(track.id)
+                }}
+              >
+                Rate
+              </button>
+            ) : null}
+          </div>
         ))}
       </div>
     </div>

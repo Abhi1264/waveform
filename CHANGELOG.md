@@ -10,11 +10,14 @@ unreleased work, grouped by [roadmap](docs/ROADMAP.md) phase.
 Added:
 
 - `waveform-library`: SQLite, FTS5 search, BLAKE3 content hashes, a background import queue,
-  MIDI parsing, model SHA-256 checks, and stem file output.
+  playlists, crates, smart playlists, ratings, tags, history, folders, and controller mappings.
 - Search of 100,000 catalog rows returned in 4.8 ms on this Mac.
-- Four mixer decks. Decks A and B use the crossfader; C and D sum at unity.
-- A command registry and palette, and website sections for philosophy, features and platforms.
-- Notes on controllers, the tablet spike, and the measurements in `docs/`.
+- Four mixer decks with seek, pitch, EQ, loops, hot cues, beat jump, a filter, delay, reverb,
+  a sampler pad, and master recording. An offline test mixes two loaded files.
+- Tempo, key, and a beat grid from the first eight seconds of a file. Sync waits for that grid.
+- MIDI CC 1 moves the crossfader on the audio thread. Mappings store command ids.
+- A command registry, palette, shortcuts, and a transport menu.
+- Website sections for philosophy, features, and platforms. There is still nothing to download.
 
 ### Phase 3: Audio engine foundation
 

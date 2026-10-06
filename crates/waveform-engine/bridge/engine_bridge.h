@@ -37,4 +37,10 @@ void render_offline(engine::Session& session, rust::Slice<float> interleaved, do
 rust::String load_deck_file(engine::Session& session, std::uint8_t deck, rust::Str path);
 rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck);
 
+struct DeckAnalysis;
+
+DeckAnalysis deck_analysis(const engine::Session& session, std::uint8_t deck);
+rust::Vec<float> deck_beats(const engine::Session& session, std::uint8_t deck);
+rust::String write_recording(engine::Session& session, rust::Str path);
+
 } // namespace waveform::bridge

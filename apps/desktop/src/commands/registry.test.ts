@@ -28,5 +28,9 @@ describe("command registry", () => {
     expect(registry.matching("syn").map((command) => command.id)).toEqual([
       "deck.sync",
     ])
+    registry.setShortcut("deck.play", "Shift+Space")
+    expect(registry.commandForShortcut("shift+space")).toBe("deck.play")
+    registry.mapControl("midi:cc:1", "deck.play")
+    expect(registry.commandForControl("midi:cc:1")).toBe("deck.play")
   })
 })

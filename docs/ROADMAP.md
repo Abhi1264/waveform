@@ -116,10 +116,10 @@ work continues.
   EQ, basic looping, hot cues.
 - **Acceptance:** a two-track mix can be performed end to end with keyboard and mouse;
   engine tests cover sync, looping and EQ.
-- **Result (2026-10-06):** sync, looping, EQ and hot cues pass in the engine tests. The
-  desktop Audio panel plays the two tone decks, draws a canvas waveform, and follows
-  the selected deck with Zustand. Space plays the selected shortcut through the command
-  registry. A file is not yet loaded from the panel.
+- **Result (2026-10-06):** an offline render loads two click tracks, beat-matches them,
+  crossfades, loops, seeks, and jumps a hot cue. The Audio panel draws the beat grid,
+  and exposes pitch, 3-band EQ, filter, delay, reverb, cue pads, and seek-by-click.
+  Sync stays disabled until a beat grid exists. Space plays through the command registry.
 
 ### Phase 6: Library
 
@@ -129,8 +129,10 @@ work continues.
   tags, smart playlists.
 - **Acceptance:** the performance targets in [ARCHITECTURE.md](ARCHITECTURE.md#performance-targets)
   hold for 100,000 tracks.
-- **Result (2026-10-06):** search of 100,000 rows took 4.8 ms on this Mac. Folders, playlists
-  and a virtualised library grid are not in the desktop window yet.
+- **Result (2026-10-06):** search of 100,000 rows took 4.8 ms on this Mac. The window
+  virtualises rows and can search, make a playlist, crate, or smart playlist, rate, tag,
+  rename, and list folders and recent plays. Dropped frames while scrolling were not
+  measured with a profiler.
 
 ### Phase 7: Professional workflow
 
@@ -139,9 +141,10 @@ work continues.
 - Four decks, advanced loops, beat jump, advanced cue points, sampler, effects, routing,
   recording, external audio devices, MIDI, HID, controller mapping.
 - **Acceptance:** each subsystem has its own tests; `docs/CONTROLLER_SUPPORT.md` written.
-- **Result (2026-10-06):** four decks mix in the engine. MIDI channel messages parse. HID is
-  recorded as `hidapi` and is not linked. ASIO stays off. Sampler, recording and reverb are
-  not built.
+- **Result (2026-10-06):** four decks mix with a filter, delay, and reverb. A sampler pad,
+  master recording to wav, beat jump, and external-input gain are in the engine. MIDI CC 1
+  moves the crossfader on the audio thread. HID is recorded as `hidapi` and is not linked.
+  ASIO stays off. Controller mappings are stored in the library.
 
 ### Phase 8: Tablet experience
 
@@ -151,7 +154,9 @@ work continues.
   landscape modes, large touch controls, bottom sheets, controller workflows.
 - Spike first: JUCE audio inside Tauri's Android activity (fallback: Oboe directly).
 - **Acceptance:** tested on real iPadOS and Android tablets where possible.
-- **Result (2026-10-06):** no tablet was available. The spike is in [TABLET.md](TABLET.md).
+- **Result (2026-10-06):** no tablet was available, and there is no Android or iPad project.
+  Portrait and landscape layouts and a bottom sheet are in the desktop UI. The spike is in
+  [TABLET.md](TABLET.md).
 
 ### Phase 9: Intelligent features
 
@@ -161,8 +166,9 @@ work continues.
   classification, phrase detection, natural-language library search.
 - **Acceptance:** every feature works offline with local models or degrades gracefully
   without them; deterministic filters always remain available.
-- **Result (2026-10-06):** tempo and key compatibility needs no model. Recommend is registered
-  and disabled. ONNX Runtime is not linked, and nothing is downloaded.
+- **Result (2026-10-06):** tempo, key, energy, and 32-beat phrases work with no model.
+  Recommend is registered, disabled, and says a model is not installed. ONNX Runtime is not
+  linked, and nothing is downloaded.
 
 ### Phase 10: Stems
 
@@ -172,8 +178,9 @@ work continues.
   bass and other, stem mixing and stem waveforms.
 - **Acceptance:** separation runs as a background job; live playback is unaffected under
   load.
-- **Result (2026-10-06):** stem files are written off the audio thread. No separation model
-  is chosen while the app licence is open.
+- **Result (2026-10-06):** stem files are written off the audio thread. A background write
+  while four decks play did not mark an xrun. No separation model is chosen while the app
+  licence is open, so the files are the caller's audio, not a neural split.
 
 ### Phase 11: Command system
 
@@ -182,8 +189,9 @@ work continues.
 - Command palette, keyboard shortcuts, controller mappings, menus, contextual actions. The
   registry exists from the first user actions; this phase completes it and connects every
   surface.
-- **Result (2026-10-06):** the registry and palette are in the desktop app. Controller
-  mappings are described and not stored yet.
+- **Result (2026-10-06):** the registry feeds the palette, the transport menu, keyboard
+  shortcuts (saved locally when changed), and controller mappings stored in the library.
+  Axe was not re-run on the palette.
 
 ### Phase 12: Web presence
 
@@ -192,8 +200,9 @@ landing page.
 
 - What Waveform is and why it exists, screenshots, philosophy, features, platforms,
   downloads, documentation, GitHub, roadmap, community, contributing.
-- **Result (2026-10-06):** the status page has philosophy, features and platforms. There is
-  still nothing to download.
+- **Result (2026-10-06):** the status page has philosophy, features, and platforms, and says
+  there is still nothing to download. Playwright and axe pass on that page in Chromium and
+  WebKit. A public build does not exist.
 
 ### Phase 13: Polish
 
@@ -206,7 +215,7 @@ landing page.
 - Remove dead code, duplicate components, unused dependencies, placeholder copy, debug
   logging, fake functionality and unnecessary abstractions.
 - **Result (2026-10-06):** the numbers that were measured are in [POLISH.md](POLISH.md). No
-  installer was published.
+  installer was published. The licence, bundle id, and signing identities are still open.
 
 ## Open decisions
 

@@ -11,6 +11,7 @@
 
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
+#include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_events/juce_events.h>
 
 namespace waveform::engine {
@@ -124,7 +125,7 @@ struct Session::Impl : private juce::AudioIODeviceCallback {
         publisher.publish(next);
     }
 
-    void audioDeviceIOCallbackWithContext(const float* const* /*input*/, int /*numInputChannels*/,
+    void audioDeviceIOCallbackWithContext(const float* const* input, int numInputChannels,
                                           float* const* output, int numOutputChannels, int numSamples,
                                           const juce::AudioIODeviceCallbackContext& /*context*/) override {
         juce::ScopedNoDenormals flushDenormals;
@@ -150,6 +151,7 @@ struct Session::Impl : private juce::AudioIODeviceCallback {
 
         const auto xrunsBefore = blockSnapshot.xrunCount;
         mixer.process(local, count, block.data(), frames, blockSnapshot);
+        mixer.addInput(block.data(), input, numInputChannels, frames);
         if (blockSnapshot.xrunCount > xrunsBefore) {
             xruns.fetch_add(blockSnapshot.xrunCount - xrunsBefore, std::memory_order_relaxed);
         }
@@ -323,6 +325,51 @@ std::string Session::loadFile(int deck, const std::string& path) {
 }
 
 std::vector<float> Session::peaks(int deck) const { return impl_->mixer.peaks(deck); }
+
+float Session::bpm(int deck) const { return impl_->mixer.bpm(deck); }
+
+std::string Session::key(int deck) const { return impl_->mixer.key(deck); }
+
+double Session::duration(int deck) const { return impl_->mixer.duration(deck); }
+
+std::vector<float> Session::beats(int deck) const { return impl_->mixer.beats(deck); }
+
+std::string Session::writeRecording(const std::string& path) {
+    const int capacity = impl_->mixer.recordingCapacity();
+    if (capacity < 4) {
+        return "Nothing has been recorded yet.";
+    }
+    std::vector<float> samples(static_cast<std::size_t>(capacity));
+    const int count = impl_->mixer.copyRecording(samples.data(), capacity);
+    if (count < 4) {
+        return "Nothing has been recorded yet.";
+    }
+    const int frames = count / 2;
+    juce::File file{juce::String(path)};
+    file.deleteFile();
+    auto stream = std::make_unique<juce::FileOutputStream>(file);
+    if (!stream->openedOk()) {
+        return "Could not open the recording.";
+    }
+    std::unique_ptr<juce::OutputStream> output = std::move(stream);
+    juce::WavAudioFormat wav;
+    auto writer = wav.createWriterFor(output, juce::AudioFormatWriter::Options{}
+                                                 .withSampleRate(impl_->mixer.sampleRate())
+                                                 .withNumChannels(2)
+                                                 .withBitsPerSample(16));
+    if (writer == nullptr) {
+        return "Could not write a wav file.";
+    }
+    juce::AudioBuffer<float> buffer(2, frames);
+    for (int index = 0; index < frames; ++index) {
+        buffer.setSample(0, index, samples[static_cast<std::size_t>(index) * 2]);
+        buffer.setSample(1, index, samples[static_cast<std::size_t>(index) * 2 + 1]);
+    }
+    if (!writer->writeFromAudioSampleBuffer(buffer, 0, frames)) {
+        return "The recording was not written.";
+    }
+    return {};
+}
 
 void Session::processOffline(float* interleavedStereo, int frames, double sampleRate) {
     impl_->processOffline(interleavedStereo, frames, sampleRate);

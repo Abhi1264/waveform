@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-recent-plays"
+description = "Enables the recent_plays command without any pre-configured scope."
+commands.allow = ["recent_plays"]
+
+[[permission]]
+identifier = "deny-recent-plays"
+description = "Denies the recent_plays command without any pre-configured scope."
+commands.deny = ["recent_plays"]

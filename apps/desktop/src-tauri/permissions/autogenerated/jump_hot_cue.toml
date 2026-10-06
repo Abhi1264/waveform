@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-jump-hot-cue"
+description = "Enables the jump_hot_cue command without any pre-configured scope."
+commands.allow = ["jump_hot_cue"]
+
+[[permission]]
+identifier = "deny-jump-hot-cue"
+description = "Denies the jump_hot_cue command without any pre-configured scope."
+commands.deny = ["jump_hot_cue"]

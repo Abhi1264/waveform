@@ -4,15 +4,15 @@ import Link from "next/link"
 const progress = [
   {
     label: "Done",
-    text: "Phases 0–5: the architecture, the engine, the design system, and a two-deck mix.",
+    text: "A two-deck mix, a library, and effects run in the local app.",
   },
   {
     label: "Now",
-    text: "The library, controllers, and the tablet layouts.",
+    text: "Tablets and a stem model still wait on hardware and a licence.",
   },
   {
     label: "Next",
-    text: "Optional local models and stem separation, still with no account and no telemetry.",
+    text: "Installers, after the licence, bundle id, and code signing exist. Still no account and no telemetry.",
   },
 ] as const
 
@@ -80,9 +80,9 @@ export default function Page() {
             Features
           </h2>
           <p className="text-pretty text-muted-foreground">
-            Two tone decks, a crossfader, EQ, loops, hot cues and sync are in
-            the engine. The library stores tracks in SQLite and searches them on
-            this machine.
+            Two decks can load files, show a beat grid, and mix with cue, sync,
+            EQ, loops, and hot cues. The library searches on this machine and
+            keeps playlists, ratings, and tags in SQLite.
           </p>
         </section>
 
@@ -108,9 +108,9 @@ export default function Page() {
             What works today
           </h2>
           <p className="text-pretty text-muted-foreground">
-            There is nothing to download yet. The desktop app starts its audio
-            engine and reports what it finds; decks, the music library, and
-            audio output come in later phases. The{" "}
+            There is nothing to download yet. You can build the desktop app
+            locally and mix with it; a public installer waits on the licence and
+            code signing. The{" "}
             <Link
               href="/design-system"
               className="underline underline-offset-4 outline-offset-2 outline-focus hover:text-foreground focus-visible:outline-2"

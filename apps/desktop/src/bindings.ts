@@ -31,6 +31,30 @@ export const commands = {
 	syncDeck: (deck: number) => typedError<null, string>(__TAURI_INVOKE("sync_deck", { deck })),
 	/**  Loops a deck between two positions, in seconds. */
 	setDeckLoop: (deck: number, start: number | null, end: number | null) => typedError<null, string>(__TAURI_INVOKE("set_deck_loop", { deck, start, end })),
+	/**  Tempo, key and length of a loaded deck. */
+	deckAnalysis: (deck: number) => typedError<DeckAnalysis, string>(__TAURI_INVOKE("deck_analysis", { deck })),
+	/**  Moves a deck to a position in seconds. */
+	seekDeck: (deck: number, seconds: number | null) => typedError<null, string>(__TAURI_INVOKE("seek_deck", { deck, seconds })),
+	/**  Sets playback rate. 1 is the original tempo. */
+	setDeckPitch: (deck: number, pitch: number | null) => typedError<null, string>(__TAURI_INVOKE("set_deck_pitch", { deck, pitch })),
+	/**  Stores a hot cue. `slot` is 0 to 7 and `seconds` is the position. */
+	setHotCue: (deck: number, slot: number, seconds: number | null) => typedError<null, string>(__TAURI_INVOKE("set_hot_cue", { deck, slot, seconds })),
+	/**  Jumps to a stored hot cue. */
+	jumpHotCue: (deck: number, slot: number) => typedError<null, string>(__TAURI_INVOKE("jump_hot_cue", { deck, slot })),
+	/**  Jumps by a number of beats. Negative values jump backward. */
+	beatJump: (deck: number, beats: number | null) => typedError<null, string>(__TAURI_INVOKE("beat_jump", { deck, beats })),
+	/**  Sets one effect. `slot` 0 is the filter, 1 the delay, 2 the reverb. `amount` is 0 to 1. */
+	setEffect: (deck: number, slot: number, amount: number | null) => typedError<null, string>(__TAURI_INVOKE("set_effect", { deck, slot, amount })),
+	/**  Arms or stops the master recording. */
+	armRecording: (armed: boolean) => typedError<null, string>(__TAURI_INVOKE("arm_recording", { armed })),
+	/**  Plays the built-in sampler pad. */
+	triggerSampler: () => typedError<null, string>(__TAURI_INVOKE("trigger_sampler")),
+	/**  Linear gain for a device input that is already open. 0 leaves it silent. */
+	setInputGain: (gain: number | null) => typedError<null, string>(__TAURI_INVOKE("set_input_gain", { gain })),
+	/**  Beat times in seconds. Empty until analysis has a grid. */
+	deckBeats: (deck: number) => typedError<(number | null)[], string>(__TAURI_INVOKE("deck_beats", { deck })),
+	/**  Writes the armed recording to a wav file. */
+	saveRecording: (path: string) => typedError<null, string>(__TAURI_INVOKE("save_recording", { path })),
 	/**  The latest engine snapshot. */
 	audioSnapshot: () => typedError<AudioSnapshot, string>(__TAURI_INVOKE("audio_snapshot")),
 	/**  Streams snapshots until the next call replaces it, or the webview goes away. */
@@ -41,6 +65,26 @@ export const commands = {
 	importFolder: (folder: string, channel: Channel<ImportProgress>) => typedError<null, string>(__TAURI_INVOKE("import_folder", { folder, channel })),
 	/**  Loads one file the user named onto a deck, and registers it in the library. */
 	loadDeckFile: (deck: number, path: string) => typedError<(number | null)[], string>(__TAURI_INVOKE("load_deck_file", { deck, path })),
+	/**  Creates a playlist (`playlist` or `crate`) or a smart playlist (`smart`). */
+	createCollection: (name: string, kind: string, minBpm: number | null, maxBpm: number | null, musicalKey: string | null) => typedError<LibraryCollection, string>(__TAURI_INVOKE("create_collection", { name, kind, minBpm, maxBpm, musicalKey })),
+	/**  Adds a track to a playlist or crate. */
+	addToCollection: (collectionId: number, trackId: number) => typedError<null, string>(__TAURI_INVOKE("add_to_collection", { collectionId, trackId })),
+	/**  Lists a playlist, or the tracks a smart playlist matches. */
+	collectionTracks: (collectionId: number) => typedError<LibraryTrack[], string>(__TAURI_INVOKE("collection_tracks", { collectionId })),
+	/**  Stores a rating from 0 to 5. */
+	setTrackRating: (trackId: number, rating: number) => typedError<null, string>(__TAURI_INVOKE("set_track_rating", { trackId, rating })),
+	/**  Replaces a track's title and artist in the library and the search index. */
+	setTrackMetadata: (trackId: number, title: string, artist: string) => typedError<null, string>(__TAURI_INVOKE("set_track_metadata", { trackId, title, artist })),
+	/**  Remembers which command a controller control runs. */
+	saveMapping: (control: string, commandId: string) => typedError<null, string>(__TAURI_INVOKE("save_mapping", { control, commandId })),
+	/**  Stored controller mappings. */
+	listMappings: () => typedError<LibraryMapping[], string>(__TAURI_INVOKE("list_mappings")),
+	/**  Parent folders of imported tracks. */
+	listFolders: () => typedError<string[], string>(__TAURI_INVOKE("list_folders")),
+	/**  Attaches a tag to a track. */
+	tagTrack: (trackId: number, tag: string) => typedError<null, string>(__TAURI_INVOKE("tag_track", { trackId, tag })),
+	/**  Recently played tracks, newest first. */
+	recentPlays: () => typedError<LibraryTrack[], string>(__TAURI_INVOKE("recent_plays")),
 };
 
 /* Types */
@@ -65,6 +109,13 @@ export type AudioSnapshot = {
 	deviceName: string,
 };
 
+/**  Tempo, key and length of a loaded deck. Sync stays off until a tempo exists. */
+export type DeckAnalysis = {
+	bpm: number | null,
+	musicalKey: string,
+	durationSeconds: number | null,
+};
+
 /**  Versions and health of the app and its audio engine. */
 export type EngineInfo = {
 	appVersion: string,
@@ -87,6 +138,19 @@ export type ImportProgress = {
 	total: number,
 	path: string,
 	failure: string | null,
+};
+
+/**  A playlist, crate, or smart playlist. */
+export type LibraryCollection = {
+	id: number,
+	name: string,
+	kind: string,
+};
+
+/**  A stored controller mapping. */
+export type LibraryMapping = {
+	control: string,
+	commandId: string,
 };
 
 /**  One search hit. Paths are included so the user can load the file they picked. */

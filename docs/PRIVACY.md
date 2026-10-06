@@ -13,11 +13,16 @@ network request without a clear reason that the user can see.
 - **No telemetry, analytics or crash reporting.** None is built in, and none will be
   added without being opt-in and documented here first.
 - **No account.** Nothing requires signing in.
-- **Only appearance choices are stored.** Changing the theme, density or motion setting
-  saves the choice in the webview's local storage on the device, under `waveform.theme`,
-  `waveform.density` and `waveform.motion`. A setting left at its default saves nothing.
-  From Phase 4 the music library lives in the app's data and cache directories on the
-  user's device; see [ARCHITECTURE.md](ARCHITECTURE.md).
+- **Appearance and shortcut overrides are stored locally.** Theme, density and motion
+  save in the webview's local storage under `waveform.theme`, `waveform.density` and
+  `waveform.motion`. A changed keyboard shortcut saves under `waveform.shortcuts`. A
+  setting left at its default saves nothing.
+- **The library stays on the device.** Tracks, playlists, ratings, tags, history and
+  controller mappings live in the app's data directory. See [DATABASE.md](DATABASE.md).
+- **Model downloads do not run.** Recommendation, phrase models and stem models are not
+  installed and are not fetched. Compatible tempo and key filters do not use the network.
+  A download would have to be started by the user, and that action is not built while no
+  model manifest has a URL.
 
 The system webview belongs to the operating system. It creates its own data and cache
 folders when the app starts; on macOS these are `~/Library/WebKit/<app identifier>` and
