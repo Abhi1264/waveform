@@ -104,8 +104,9 @@ work continues.
   tests pass; `docs/MEDIA_PIPELINE.md` and `docs/DATABASE.md` written.
 - **Result (2026-10-06):** the library crate hashes with BLAKE3, migrates SQLite, searches
   with FTS5, and imports on a background queue. 100,000 small files hashed in 7.86 s.
-  A wav file now decodes on a loader thread into chunks, with peaks, and `lofty` reads tags.
-  A MediaBunny worker is not in the webview yet.
+  A wav file decodes on a loader thread into chunks. `lofty` reads tags on import.
+  MediaBunny 1.61.1 inspects blobs from a webview worker. The desktop library can search
+  and import a folder while the window stays up.
 
 ### Phase 5: First real DJ workflow (first major milestone)
 

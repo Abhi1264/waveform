@@ -11,9 +11,10 @@ Import turns a folder of files into library rows without running on the audio th
 - A wav file is decoded on a loader thread into fixed chunks. The audio callback only reads
   a chunk that has been published. Peaks (min/max pairs) are computed during that load.
   A Catch2 test writes a one-second sine, loads it, and checks that playback and peaks appear.
-- Tags are read with `lofty` 0.25.4 when the file has them. The filename is the title when
-  it does not. That native read is the import path. A MediaBunny worker for artwork and
-  export is still to be added in the webview, and it will stay off the audio callback.
+- Tags on import are read with `lofty` 0.25.4. The filename is the title when a file has
+  no tags.
+- MediaBunny 1.61.1 inspects a blob in `apps/desktop/src/media/inspect.worker.ts`. It reads
+  title, artist and whether cover art is present. It does not decode for playback.
 
 ## What a later import step stores
 

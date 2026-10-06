@@ -84,6 +84,8 @@ mod ffi {
         );
         fn read_snapshot(session: &Session) -> AudioSnapshot;
         fn render_offline(session: Pin<&mut Session>, interleaved: &mut [f32], sample_rate: f64);
+        fn load_deck_file(session: Pin<&mut Session>, deck: u8, path: &str) -> String;
+        fn deck_peaks(session: &Session, deck: u8) -> Vec<f32>;
     }
 }
 
@@ -245,6 +247,22 @@ impl Session {
     /// The latest snapshot. Cheap, and safe to call from a UI thread.
     pub fn snapshot(&self) -> AudioSnapshot {
         ffi::read_snapshot(&self.inner)
+    }
+
+    /// Decodes `path` onto a deck. The loader thread fills chunks; this returns
+    /// once the file has been opened and its peaks are known.
+    pub fn load_file(&mut self, deck: u8, path: &str) -> Result<(), EngineError> {
+        if deck > 3 {
+            return Err(EngineError(
+                "Waveform has four decks, numbered 0 to 3.".into(),
+            ));
+        }
+        empty_is_ok(ffi::load_deck_file(self.inner.pin_mut(), deck, path))
+    }
+
+    /// Interleaved min/max peak pairs for a loaded file.
+    pub fn peaks(&self, deck: u8) -> Vec<f32> {
+        ffi::deck_peaks(&self.inner, deck)
     }
 
     /// Mixes `frames` of stereo audio without opening a device.

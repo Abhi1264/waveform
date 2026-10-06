@@ -7,6 +7,7 @@ import { liveAudio } from "@/audio/audio-api"
 import { AudioPanel } from "@/audio/audio-panel"
 import { commands } from "@/bindings"
 import { CommandPalette } from "@/commands/palette"
+import { LibraryPanel } from "@/library/library-panel"
 import { createRegistry } from "@/commands/registry"
 import { useWindowTheme, type WindowTheme } from "@/window-theme"
 
@@ -60,6 +61,11 @@ export function App() {
     <main className="mx-auto flex max-w-2xl flex-col gap-8 px-8 py-10">
       <AboutView loadEngineInfo={commands.engineInfo} />
       <AudioPanel api={liveAudio} />
+      <LibraryPanel
+        onOpen={(path) => {
+          void liveAudio.loadDeckFile(0, path)
+        }}
+      />
       <CommandPalette registry={commandRegistry} />
       <section
         aria-labelledby="appearance-heading"

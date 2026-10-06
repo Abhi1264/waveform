@@ -1,4 +1,5 @@
 mod engine;
+mod library;
 
 use tauri::{Manager, RunEvent};
 use tauri_specta::{Builder, collect_commands};
@@ -17,8 +18,14 @@ fn commands() -> Builder<tauri::Wry> {
         engine::cue_deck,
         engine::set_deck_gain,
         engine::set_crossfader,
+        engine::set_deck_eq,
+        engine::sync_deck,
+        engine::set_deck_loop,
         engine::audio_snapshot,
         engine::watch_audio,
+        library::search_tracks,
+        library::import_folder,
+        library::load_deck_file,
     ])
 }
 
@@ -30,6 +37,7 @@ pub fn run() {
         .invoke_handler(commands.invoke_handler())
         .setup(move |app| {
             app.manage(engine::Engine::start());
+            app.manage(library::LibraryState::open(app.handle())?);
             if self_test {
                 engine::spawn_self_test(app.handle().clone());
             }

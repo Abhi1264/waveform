@@ -37,6 +37,9 @@ function api(overrides: Partial<AudioApi> = {}): AudioApi {
     pauseDeck: vi.fn(() => Promise.resolve()),
     cueDeck: vi.fn(() => Promise.resolve()),
     setCrossfader: vi.fn(() => Promise.resolve()),
+    loadDeckFile: vi.fn(() => Promise.resolve([])),
+    syncDeck: vi.fn(() => Promise.resolve()),
+    setDeckLoop: vi.fn(() => Promise.resolve()),
     audioSnapshot: vi.fn(() => Promise.resolve(snapshot)),
     watchAudio: vi.fn((onSnapshot: (next: AudioSnapshot) => void) => {
       onSnapshot(snapshot)

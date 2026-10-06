@@ -132,4 +132,16 @@ void render_offline(engine::Session& session, rust::Slice<float> interleaved, do
     session.processOffline(interleaved.data(), frames, sample_rate);
 }
 
+rust::String load_deck_file(engine::Session& session, std::uint8_t deck, rust::Str path) {
+    return rust::String(session.loadFile(static_cast<int>(deck), std::string(path.data(), path.size())));
+}
+
+rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck) {
+    rust::Vec<float> peaks;
+    for (float peak : session.peaks(static_cast<int>(deck))) {
+        peaks.push_back(peak);
+    }
+    return peaks;
+}
+
 } // namespace waveform::bridge

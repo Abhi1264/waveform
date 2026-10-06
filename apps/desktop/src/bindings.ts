@@ -25,10 +25,22 @@ export const commands = {
 	setDeckGain: (deck: number, decibels: number | null) => typedError<null, string>(__TAURI_INVOKE("set_deck_gain", { deck, decibels })),
 	/**  Moves the crossfader. 0 is fully deck A, 1 is fully deck B. */
 	setCrossfader: (position: number | null) => typedError<null, string>(__TAURI_INVOKE("set_crossfader", { position })),
+	/**  Sets one EQ band. `band` is 0 low, 1 mid, 2 high. */
+	setDeckEq: (deck: number, band: number, decibels: number | null) => typedError<null, string>(__TAURI_INVOKE("set_deck_eq", { deck, band, decibels })),
+	/**  Matches this deck's pitch to the other deck's tempo. */
+	syncDeck: (deck: number) => typedError<null, string>(__TAURI_INVOKE("sync_deck", { deck })),
+	/**  Loops a deck between two positions, in seconds. */
+	setDeckLoop: (deck: number, start: number | null, end: number | null) => typedError<null, string>(__TAURI_INVOKE("set_deck_loop", { deck, start, end })),
 	/**  The latest engine snapshot. */
 	audioSnapshot: () => typedError<AudioSnapshot, string>(__TAURI_INVOKE("audio_snapshot")),
 	/**  Streams snapshots until the next call replaces it, or the webview goes away. */
 	watchAudio: (channel: Channel<AudioSnapshot>) => __TAURI_INVOKE<void>("watch_audio", { channel }),
+	/**  Search titles and artists. Uses a read-only connection so an import can write. */
+	searchTracks: (query: string) => typedError<LibraryTrack[], string>(__TAURI_INVOKE("search_tracks", { query })),
+	/**  Imports audio files under `folder` on a background thread and reports progress. */
+	importFolder: (folder: string, channel: Channel<ImportProgress>) => typedError<null, string>(__TAURI_INVOKE("import_folder", { folder, channel })),
+	/**  Loads one file the user named onto a deck, and registers it in the library. */
+	loadDeckFile: (deck: number, path: string) => typedError<(number | null)[], string>(__TAURI_INVOKE("load_deck_file", { deck, path })),
 };
 
 /* Types */
@@ -67,6 +79,23 @@ export type EngineInfo = {
 	/**  Null when the system webview's version cannot be read. */
 	webviewVersion: string | null,
 	messageLoop: MessageLoopStatus,
+};
+
+/**  Progress for a folder import. `done` counts files finished, including failures. */
+export type ImportProgress = {
+	done: number,
+	total: number,
+	path: string,
+	failure: string | null,
+};
+
+/**  One search hit. Paths are included so the user can load the file they picked. */
+export type LibraryTrack = {
+	id: number,
+	title: string,
+	artist: string,
+	path: string,
+	failure: string | null,
 };
 
 /**

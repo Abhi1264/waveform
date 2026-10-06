@@ -20,6 +20,7 @@ specta = { workspace = true }
 tauri = { workspace = true }
 tauri-specta = { workspace = true }
 waveform-engine = { workspace = true }
+waveform-library = { workspace = true }
 
 # Only the bindings test exports TypeScript.
 [dev-dependencies]

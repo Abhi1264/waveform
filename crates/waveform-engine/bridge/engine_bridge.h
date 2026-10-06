@@ -34,5 +34,7 @@ void submit_command(engine::Session& session, std::uint8_t kind, std::uint8_t de
                     float value2, std::uint8_t slot);
 AudioSnapshot read_snapshot(const engine::Session& session);
 void render_offline(engine::Session& session, rust::Slice<float> interleaved, double sample_rate);
+rust::String load_deck_file(engine::Session& session, std::uint8_t deck, rust::Str path);
+rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck);
 
 } // namespace waveform::bridge

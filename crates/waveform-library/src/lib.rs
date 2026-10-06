@@ -3,15 +3,15 @@
 
 mod hash;
 mod jobs;
-mod tags;
 pub mod midi;
 pub mod models;
 mod schema;
 pub mod stems;
+mod tags;
 
 use std::path::{Path, PathBuf};
 
-use rusqlite::{Connection, OptionalExtension, params};
+use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
 
 pub use hash::{HashAlgorithm, content_hash, hash_file, time_directory_hash};
 pub use jobs::{ImportJob, JobQueue};
@@ -55,6 +55,16 @@ impl Library {
         connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.pragma_update(None, "foreign_keys", "ON")?;
         MIGRATIONS.to_latest(&mut connection)?;
+        Ok(Self { connection, path })
+    }
+
+    /// A connection that cannot write. The writer must have created the file first.
+    pub fn open_readonly(path: impl AsRef<Path>) -> Result<Self, LibraryError> {
+        let path = path.as_ref().to_path_buf();
+        let connection = Connection::open_with_flags(
+            &path,
+            OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
+        )?;
         Ok(Self { connection, path })
     }
 

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-load-deck-file"
+description = "Enables the load_deck_file command without any pre-configured scope."
+commands.allow = ["load_deck_file"]
+
+[[permission]]
+identifier = "deny-load-deck-file"
+description = "Denies the load_deck_file command without any pre-configured scope."
+commands.deny = ["load_deck_file"]

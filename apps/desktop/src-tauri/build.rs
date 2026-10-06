@@ -13,8 +13,14 @@ fn main() {
             "cue_deck",
             "set_deck_gain",
             "set_crossfader",
+            "set_deck_eq",
+            "sync_deck",
+            "set_deck_loop",
             "audio_snapshot",
             "watch_audio",
+            "search_tracks",
+            "import_folder",
+            "load_deck_file",
         ]),
     ))
     .expect("tauri-build failed");

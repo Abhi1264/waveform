@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sync-deck"
+description = "Enables the sync_deck command without any pre-configured scope."
+commands.allow = ["sync_deck"]
+
+[[permission]]
+identifier = "deny-sync-deck"
+description = "Denies the sync_deck command without any pre-configured scope."
+commands.deny = ["sync_deck"]

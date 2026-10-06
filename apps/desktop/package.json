@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "catalog:",
+    "mediabunny": "catalog:",
     "@waveform/core-utils": "workspace:*",
     "@waveform/ui": "workspace:*",
     "react": "catalog:",

@@ -62,6 +62,22 @@ impl Engine {
         drop(runtime);
     }
 
+    /// Decodes a file onto a deck and returns its peaks.
+    pub fn load_file(&self, deck: u8, path: &str) -> Result<(), String> {
+        let mut guard = self.session()?;
+        guard
+            .as_mut()
+            .expect("checked")
+            .load_file(deck, path)
+            .map_err(|error| error.to_string())
+    }
+
+    /// Peak pairs for a deck that has a file loaded.
+    pub fn peaks(&self, deck: u8) -> Result<Vec<f32>, String> {
+        let guard = self.session()?;
+        Ok(guard.as_ref().expect("checked").peaks(deck))
+    }
+
     fn session(&self) -> Result<std::sync::MutexGuard<'_, Option<Session>>, String> {
         let guard = self
             .session
@@ -323,6 +339,49 @@ pub fn set_deck_gain(engine: State<'_, Engine>, deck: u8, decibels: f32) -> Resu
 #[specta::specta]
 pub fn set_crossfader(engine: State<'_, Engine>, position: f32) -> Result<(), String> {
     transport(&engine, Transport::SetCrossfader, 0, position)
+}
+
+/// Sets one EQ band. `band` is 0 low, 1 mid, 2 high.
+#[tauri::command]
+#[specta::specta]
+pub fn set_deck_eq(
+    engine: State<'_, Engine>,
+    deck: u8,
+    band: u8,
+    decibels: f32,
+) -> Result<(), String> {
+    with_session(&engine, |session| {
+        session
+            .command(Transport::SetEq, deck, decibels, 0.0, band)
+            .map_err(|error| error.to_string())
+    })
+}
+
+/// Matches this deck's pitch to the other deck's tempo.
+#[tauri::command]
+#[specta::specta]
+pub fn sync_deck(engine: State<'_, Engine>, deck: u8) -> Result<(), String> {
+    with_session(&engine, |session| {
+        session
+            .command(Transport::Sync, deck, 0.0, 0.0, 0)
+            .map_err(|error| error.to_string())
+    })
+}
+
+/// Loops a deck between two positions, in seconds.
+#[tauri::command]
+#[specta::specta]
+pub fn set_deck_loop(
+    engine: State<'_, Engine>,
+    deck: u8,
+    start: f32,
+    end: f32,
+) -> Result<(), String> {
+    with_session(&engine, |session| {
+        session
+            .command(Transport::SetLoop, deck, start, end, 1)
+            .map_err(|error| error.to_string())
+    })
 }
 
 /// The latest engine snapshot.

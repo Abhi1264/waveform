@@ -32,6 +32,13 @@ const liveAudio: AudioApi = {
   pauseDeck: (deck) => command(commands.pauseDeck(deck)),
   cueDeck: (deck) => command(commands.cueDeck(deck)),
   setCrossfader: (position) => command(commands.setCrossfader(position)),
+  loadDeckFile: async (deck, path) => {
+    const peaks = await unwrap(commands.loadDeckFile(deck, path))
+    return peaks.filter((peak): peak is number => peak !== null)
+  },
+  syncDeck: (deck) => command(commands.syncDeck(deck)),
+  setDeckLoop: (deck, start, end) =>
+    command(commands.setDeckLoop(deck, start, end)),
   audioSnapshot: () => unwrap(commands.audioSnapshot()),
   watchAudio: (onSnapshot) => {
     const channel = new Channel<AudioSnapshot>()

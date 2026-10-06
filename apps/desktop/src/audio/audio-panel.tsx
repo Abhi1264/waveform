@@ -16,6 +16,9 @@ interface AudioApi {
   pauseDeck: (deck: number) => Promise<void>
   cueDeck: (deck: number) => Promise<void>
   setCrossfader: (position: number) => Promise<void>
+  loadDeckFile: (deck: number, path: string) => Promise<number[]>
+  syncDeck: (deck: number) => Promise<void>
+  setDeckLoop: (deck: number, start: number, end: number) => Promise<void>
   audioSnapshot: () => Promise<AudioSnapshot>
   watchAudio: (
     onSnapshot: (snapshot: AudioSnapshot) => void
@@ -57,6 +60,8 @@ function AudioPanel({ api }: { api: AudioApi }) {
   const [devices, setDevices] = useState<OutputDevice[]>([])
   const [snapshot, setSnapshot] = useState<AudioSnapshot>(quiet)
   const [error, setError] = useState("")
+  const [filePath, setFilePath] = useState("")
+  const [peaks, setPeaks] = useState<number[]>(tonePeaks)
   const deck = useDeckSelection((state) => state.deck)
   const selectDeck = useDeckSelection((state) => state.select)
 
@@ -101,8 +106,39 @@ function AudioPanel({ api }: { api: AudioApi }) {
         {formatRate(snapshot)}
         {snapshot.xrunCount > 0 ? ` · ${snapshot.xrunCount} xruns` : ""}
       </p>
+      <form
+        className="flex flex-wrap gap-2"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const path = filePath.trim()
+          if (path.length === 0) return
+          api
+            .loadDeckFile(deck, path)
+            .then((nextPeaks) => {
+              if (nextPeaks.length > 0) setPeaks(nextPeaks)
+            })
+            .catch((reason: unknown) => {
+              setError(
+                reason instanceof Error ? reason.message : String(reason)
+              )
+            })
+        }}
+      >
+        <label className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="faceplate text-muted-foreground">File</span>
+          <input
+            value={filePath}
+            onChange={(event) => {
+              setFilePath(event.target.value)
+            }}
+            placeholder="Path to a wav or aiff file"
+            className="rounded-md border border-divider bg-surface px-3 py-2"
+          />
+        </label>
+        <Button type="submit">Load</Button>
+      </form>
       <WaveformView
-        peaks={tonePeaks}
+        peaks={peaks.length > 0 ? peaks : tonePeaks}
         positionSeconds={
           (deck === 0
             ? snapshot.deckAPositionSeconds
@@ -175,6 +211,24 @@ function AudioPanel({ api }: { api: AudioApi }) {
                   }}
                 >
                   {playing ? "Pause" : "Cue"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onPress={() => {
+                    selectDeck(deck)
+                    run(() => api.syncDeck(deck))
+                  }}
+                >
+                  Sync
+                </Button>
+                <Button
+                  variant="outline"
+                  onPress={() => {
+                    selectDeck(deck)
+                    run(() => api.setDeckLoop(deck, 0, 4))
+                  }}
+                >
+                  Loop
                 </Button>
               </div>
               <LevelMeter
