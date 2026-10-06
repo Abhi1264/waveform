@@ -5,6 +5,20 @@ unreleased work, grouped by [roadmap](docs/ROADMAP.md) phase.
 
 ## Unreleased
 
+### Licence and models
+
+- The project licence is GNU AGPL-3.0-only (`LICENSE`). Packages stay private and are not
+  published to npm or crates.io. Their SPDX field is `AGPL-3.0-only`.
+- Contributions use a Developer Certificate of Origin sign-off. There is no CLA.
+- The iOS and Mac App Store stay blocked. AGPL conflicts with Apple's terms. No store
+  binary is built.
+- `WAVEFORM_ENABLE_ASIO` compiles ASIO on Windows when the GPLv3 headers are present. It
+  defaults off, and CI does not compile ASIO. `hidapi` stays the controller library and is
+  not linked.
+- Open-Unmix UMX-HQ can be downloaded when the user asks. The SHA-256 is checked before
+  the files count as installed. ONNX Runtime is not linked, and no neural separation runs.
+  Stem audio that is already on disk plays through the deck loader.
+
 ### Phases 4–13
 
 Added:

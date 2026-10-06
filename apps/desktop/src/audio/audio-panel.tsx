@@ -18,9 +18,7 @@ interface AudioApi {
   cueDeck: (deck: number) => Promise<void>
   setCrossfader: (position: number) => Promise<void>
   loadDeckFile: (deck: number, path: string) => Promise<number[]>
-  deckAnalysis: (
-    deck: number
-  ) => Promise<{
+  deckAnalysis: (deck: number) => Promise<{
     bpm: number | null
     musicalKey: string
     durationSeconds: number | null

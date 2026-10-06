@@ -85,6 +85,11 @@ export const commands = {
 	tagTrack: (trackId: number, tag: string) => typedError<null, string>(__TAURI_INVOKE("tag_track", { trackId, tag })),
 	/**  Recently played tracks, newest first. */
 	recentPlays: () => typedError<LibraryTrack[], string>(__TAURI_INVOKE("recent_plays")),
+	/**
+	 *  Downloads Open-Unmix UMX-HQ after the user asks. Not called at startup.
+	 *  A weight file is kept only when its SHA-256 matches the manifest.
+	 */
+	downloadStemModel: () => typedError<string, string>(__TAURI_INVOKE("download_stem_model")),
 };
 
 /* Types */

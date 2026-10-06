@@ -10,6 +10,7 @@ members = [
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.99"
+license = "AGPL-3.0-only"
 publish = false
 
 [workspace.dependencies]
@@ -34,6 +35,7 @@ tauri = "2.12.1"
 tauri-build = "2.7.1"
 tauri-specta = "=2.0.0-rc.25"
 thiserror = "=2.0.21"
+ureq = { version = "=3.4.2", default-features = false, features = ["rustls"] }
 
 [workspace.lints.rust]
 unsafe_code = "deny"

@@ -39,13 +39,13 @@ open as of 2026-10-04 on CLI 2.12.1). Details are in
 
 No platform plays audio yet. Phase 3 brings device output through JUCE:
 
-| Platform | Audio API (through JUCE)                                 |
-| -------- | -------------------------------------------------------- |
-| macOS    | CoreAudio                                                |
-| Windows  | WASAPI; ASIO is optional and depends on licensing        |
-| Linux    | ALSA, with JACK where available (PipeWire provides both) |
-| iPadOS   | iOS audio session                                        |
-| Android  | JUCE's Android audio (Oboe)                              |
+| Platform | Audio API (through JUCE)                                                                                           |
+| -------- | ------------------------------------------------------------------------------------------------------------------ |
+| macOS    | CoreAudio                                                                                                          |
+| Windows  | WASAPI. ASIO compiles only when `WAVEFORM_ENABLE_ASIO` is ON and the headers are present. The option defaults off. |
+| Linux    | ALSA, with JACK where available (PipeWire provides both)                                                           |
+| iPadOS   | iOS audio session                                                                                                  |
+| Android  | JUCE's Android audio (Oboe)                                                                                        |
 
 ## How JUCE runs inside the app
 

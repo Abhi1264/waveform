@@ -5,11 +5,13 @@ network request without a clear reason that the user can see.
 
 ## The desktop app
 
-- **No network activity.** The app makes no network requests. Checked on macOS on
-  2026-10-05: with the app running, neither its process nor its WebKit helper processes
-  held a network socket (`lsof -i`). JUCE is built without its networking code
-  (`JUCE_USE_CURL=0`) or web-browser component, and the content security policy blocks
-  every remote origin.
+- **No network activity at startup.** The app does not open a socket when it launches.
+  Checked on macOS on 2026-10-05, before the stem-model download existed: with the app
+  running, neither its process nor its WebKit helper processes held a network socket
+  (`lsof -i`). That check was not repeated after the download was added. The download is
+  not called from startup. JUCE is built without its networking code (`JUCE_USE_CURL=0`)
+  or web-browser component, and the content security policy still blocks every remote
+  origin in the webview. The model download is a Rust request, not a webview request.
 - **No telemetry, analytics or crash reporting.** None is built in, and none will be
   added without being opt-in and documented here first.
 - **No account.** Nothing requires signing in.
@@ -19,10 +21,12 @@ network request without a clear reason that the user can see.
   setting left at its default saves nothing.
 - **The library stays on the device.** Tracks, playlists, ratings, tags, history and
   controller mappings live in the app's data directory. See [DATABASE.md](DATABASE.md).
-- **Model downloads do not run.** Recommendation, phrase models and stem models are not
-  installed and are not fetched. Compatible tempo and key filters do not use the network.
-  A download would have to be started by the user, and that action is not built while no
-  model manifest has a URL.
+- **One model download, and only when the user asks.** The library panel's "Download stem
+  model" button fetches Open-Unmix UMX-HQ from `zenodo.org` (record 3370489, four files,
+  142,551,184 bytes). The app checks the SHA-256 before it treats the files as installed.
+  It does not download them at startup, and tests do not fetch them. Recommendation and
+  phrase models are not installed. Tempo, key, energy, and phrase filters do not use the
+  network. See [MODELS.md](MODELS.md).
 
 The system webview belongs to the operating system. It creates its own data and cache
 folders when the app starts; on macOS these are `~/Library/WebKit/<app identifier>` and

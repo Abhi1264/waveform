@@ -8,11 +8,11 @@ const progress = [
   },
   {
     label: "Now",
-    text: "Tablets and a stem model still wait on hardware and a licence.",
+    text: "The source is AGPL-3.0-only. Store binaries are still not built.",
   },
   {
     label: "Next",
-    text: "Installers, after the licence, bundle id, and code signing exist. Still no account and no telemetry.",
+    text: "Installers, after a bundle id and code signing exist. Still no account and no telemetry.",
   },
 ] as const
 
@@ -33,8 +33,10 @@ export default function Page() {
             Waveform is a DJ workstation for macOS, Windows, Linux, iPad, and
             Android, built around a native real-time audio engine. It is meant
             to work fully offline, with no account, subscription, or telemetry.
-            It will be released as open source; the license has not been chosen
-            yet.
+            The source is free software under the GNU Affero General Public
+            License, version 3 only. Personal use is allowed. The iOS App Store
+            and the Mac App Store are not: Apple&apos;s terms conflict with the
+            AGPL.
           </p>
         </section>
 
@@ -95,8 +97,8 @@ export default function Page() {
           </h2>
           <p className="text-pretty text-muted-foreground">
             macOS is what we run by hand. Windows and Linux are in continuous
-            integration. iPad and Android wait on a licence that can ship in
-            those stores.
+            integration. No iOS, Mac App Store, or Play Store binary is built.
+            The AGPL conflicts with the iOS and Mac App Store terms.
           </p>
         </section>
 
@@ -109,8 +111,8 @@ export default function Page() {
           </h2>
           <p className="text-pretty text-muted-foreground">
             There is nothing to download yet. You can build the desktop app
-            locally and mix with it; a public installer waits on the licence and
-            code signing. The{" "}
+            locally and mix with it; a public installer still waits on a bundle
+            id and code signing. The{" "}
             <Link
               href="/design-system"
               className="underline underline-offset-4 outline-offset-2 outline-focus hover:text-foreground focus-visible:outline-2"

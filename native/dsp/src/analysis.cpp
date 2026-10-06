@@ -49,7 +49,8 @@ Analysis analyse(const float* mono, int frames, double sampleRate) {
     float bestScore = 0.0f;
     float bestBpm = 0.0f;
     for (int bpm = 80; bpm <= 180; ++bpm) {
-        const double period = 60.0 / static_cast<double>(bpm) * sampleRate / static_cast<double>(kHop);
+        const double period =
+            60.0 / static_cast<double>(bpm) * sampleRate / static_cast<double>(kHop);
         const int lag = std::max(1, static_cast<int>(std::lround(period)));
         if (lag >= hops / 2) {
             continue;
@@ -76,8 +77,8 @@ Analysis analyse(const float* mono, int frames, double sampleRate) {
                 first = hop;
             }
         }
-        for (double sample = static_cast<double>(first) * kHop; sample < static_cast<double>(frames);
-             sample += periodSamples) {
+        for (double sample = static_cast<double>(first) * kHop;
+             sample < static_cast<double>(frames); sample += periodSamples) {
             result.beats.push_back(sample / sampleRate);
             if (result.beats.size() > 256) {
                 break;
@@ -102,8 +103,8 @@ Analysis analyse(const float* mono, int frames, double sampleRate) {
         others += magnitude;
     }
     if (loudest > 0.0f && loudest > others * 0.2f) {
-        static constexpr const char* kPitchClass[] = {
-            "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+        static constexpr const char* kPitchClass[] = {"C",  "C#", "D",  "D#", "E",  "F",
+                                                      "F#", "G",  "G#", "A",  "A#", "B"};
         result.key = kPitchClass[winner];
     }
     return result;

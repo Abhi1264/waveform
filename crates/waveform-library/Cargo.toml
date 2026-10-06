@@ -4,6 +4,7 @@ description = "Waveform's library database and import jobs"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
+license.workspace = true
 publish.workspace = true
 
 [dependencies]
@@ -14,6 +15,7 @@ rusqlite = { workspace = true }
 sha2 = { workspace = true }
 rusqlite_migration = { workspace = true }
 xxhash-rust = { workspace = true }
+ureq = { workspace = true }
 
 [dev-dependencies]
 tempfile = "=3.23.0"

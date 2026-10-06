@@ -34,6 +34,12 @@ blob-report/
 .env.*
 !.env.example
 
+# Model weights and ONNX graphs are downloaded by the user. Never commit them.
+*.onnx
+*.pth
+*.ckpt
+*.safetensors
+
 # Operating system and editors
 .DS_Store
 Thumbs.db

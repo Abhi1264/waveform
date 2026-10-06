@@ -16,21 +16,21 @@ licences require for binary distribution.
 | --------- | ------- | ------------------------------------------------------------------------------- |
 | JUCE      | 9.0.3   | AGPLv3 or the commercial JUCE 9 licence (see [LICENSING.md](docs/LICENSING.md)) |
 
-A commercial JUCE licence may be required, depending on how Waveform is licensed and
-distributed.
+Waveform is AGPL-3.0-only and uses JUCE under AGPLv3. A commercial JUCE licence was not
+purchased. A commercial JUCE licence may be required for a build that is not AGPL.
 
 Waveform builds the `juce_core`, `juce_events`, `juce_audio_basics`, `juce_audio_devices`
 and `juce_audio_formats` modules. The linker keeps only the code the engine uses, and
 today that is part of `juce_core` and `juce_events` (the message loop). Checked with
 `nm` on the macOS binary:
 
-| Bundled with JUCE                         | Licence            | In the app binary today                           |
-| ----------------------------------------- | ------------------ | ------------------------------------------------- |
-| zlib 1.3.2                                | Zlib               | No                                                |
-| FLAC 1.5.0, libogg 1.3.6, libvorbis 1.3.7 | BSD-3-Clause       | No; compiled, linked once audio files are decoded |
-| Opus 1.6.1, opusfile, libopusenc 0.3      | BSD-3-Clause       | No; compiled, linked once audio files are decoded |
-| JUCE's MP3 decoder                        | JUCE's own licence | No                                                |
-| ASIO SDK, Oboe                            | See LICENSING.md   | Not compiled                                      |
+| Bundled with JUCE                         | Licence            | In the app binary today                            |
+| ----------------------------------------- | ------------------ | -------------------------------------------------- |
+| zlib 1.3.2                                | Zlib               | No                                                 |
+| FLAC 1.5.0, libogg 1.3.6, libvorbis 1.3.7 | BSD-3-Clause       | No; compiled, linked once audio files are decoded  |
+| Opus 1.6.1, opusfile, libopusenc 0.3      | BSD-3-Clause       | No; compiled, linked once audio files are decoded  |
+| JUCE's MP3 decoder                        | JUCE's own licence | No                                                 |
+| ASIO SDK, Oboe                            | See LICENSING.md   | Not compiled. `WAVEFORM_ENABLE_ASIO` defaults off. |
 
 ### Rust crates
 
@@ -61,6 +61,9 @@ expression. "Any of" means the crate may be used under whichever listed licence 
 
 Notes:
 
+- `ureq` 3.4.2 (MIT OR Apache-2.0) was added on 2026-10-06 so the user can download the stem
+  model. It pulls in rustls. The crate counts in the table above were taken on 2026-10-05
+  and were not regenerated.
 - The four MPL-2.0 crates are `cssparser`, `dtoa-short`, `selectors` (used by Tauri's
   HTML processing) and `option-ext`. MPL-2.0 is file-level copyleft: their source files,
   including any changes to them, must stay available under MPL-2.0. It is compatible with

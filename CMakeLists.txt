@@ -13,6 +13,11 @@ project(waveform_native VERSION 0.1.0 LANGUAGES C CXX)
 
 option(WAVEFORM_BUILD_TESTS "Build the Catch2 test suites" ON)
 option(WAVEFORM_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
+# Off in every preset, including CI. The Steinberg SDK is not in this repo.
+# See docs/CONTROLLER_SUPPORT.md.
+option(WAVEFORM_ENABLE_ASIO "Compile ASIO on Windows when the headers are present" OFF)
+set(WAVEFORM_ASIO_SDK_DIR "" CACHE PATH
+    "Optional local ASIO SDK. Empty uses the GPLv3 headers bundled inside JUCE, and only when WAVEFORM_ENABLE_ASIO is ON.")
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

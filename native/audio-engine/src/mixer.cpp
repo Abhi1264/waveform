@@ -1,11 +1,11 @@
 #include <waveform/engine/mixer.hpp>
 
-#include <waveform/dsp/crossfader.hpp>
-#include <waveform/dsp/gain.hpp>
-
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+
+#include <waveform/dsp/crossfader.hpp>
+#include <waveform/dsp/gain.hpp>
 
 namespace waveform::engine {
 
@@ -48,9 +48,11 @@ void Mixer::prepare(double sampleRate, int maxFrames) {
 void Mixer::fillSampler() noexcept {
     samplerCursor_ = samplerFrames_;
     for (int index = 0; index < samplerFrames_; ++index) {
-        const float envelope = 1.0f - static_cast<float>(index) / static_cast<float>(samplerFrames_);
-        const float sample = envelope * static_cast<float>(std::sin(2.0 * 3.141592653589793 * 880.0 *
-                                                                     static_cast<double>(index) / sampleRate_));
+        const float envelope =
+            1.0f - static_cast<float>(index) / static_cast<float>(samplerFrames_);
+        const float sample =
+            envelope * static_cast<float>(std::sin(2.0 * 3.141592653589793 * 880.0 *
+                                                   static_cast<double>(index) / sampleRate_));
         sampler_[static_cast<std::size_t>(index) * kChannels] = sample;
         sampler_[static_cast<std::size_t>(index) * kChannels + 1] = sample;
     }
@@ -188,8 +190,8 @@ void Mixer::renderDeck(int deckIndex, Deck& deck, float* interleavedStereo, int 
     float peak = 0.0f;
     for (int frame = 0; frame < frames; ++frame) {
         for (int channel = 0; channel < kChannels; ++channel) {
-            const auto offset = static_cast<std::size_t>(frame) * kChannels +
-                                static_cast<std::size_t>(channel);
+            const auto offset =
+                static_cast<std::size_t>(frame) * kChannels + static_cast<std::size_t>(channel);
             deck.lowState += kLowCoefficient * (interleavedStereo[offset] - deck.lowState);
             const float highPassed = interleavedStereo[offset] - deck.lowState;
             float sample = (deck.lowState * low + highPassed * high) * gain;
@@ -259,11 +261,12 @@ void Mixer::process(const Command* commands, int commandCount, float* interleave
     float masterPeak = 0.0f;
     for (int frame = 0; frame < frames; ++frame) {
         for (int channel = 0; channel < kChannels; ++channel) {
-            const auto offset = static_cast<std::size_t>(frame) * kChannels +
-                                static_cast<std::size_t>(channel);
+            const auto offset =
+                static_cast<std::size_t>(frame) * kChannels + static_cast<std::size_t>(channel);
             // Decks A and B sit on the crossfader. Decks C and D sum at unity.
-            const float sample = rendered[0][offset] * gains.left + rendered[1][offset] * gains.right +
-                                 rendered[2][offset] + rendered[3][offset];
+            const float sample = rendered[0][offset] * gains.left +
+                                 rendered[1][offset] * gains.right + rendered[2][offset] +
+                                 rendered[3][offset];
             interleavedStereo[offset] = sample;
             masterPeak = std::max(masterPeak, std::abs(sample));
         }
@@ -272,8 +275,8 @@ void Mixer::process(const Command* commands, int commandCount, float* interleave
     if (samplerCursor_ < samplerFrames_) {
         for (int frame = 0; frame < frames && samplerCursor_ < samplerFrames_; ++frame) {
             for (int channel = 0; channel < kChannels; ++channel) {
-                const auto offset = static_cast<std::size_t>(frame) * kChannels +
-                                    static_cast<std::size_t>(channel);
+                const auto offset =
+                    static_cast<std::size_t>(frame) * kChannels + static_cast<std::size_t>(channel);
                 const auto source = static_cast<std::size_t>(samplerCursor_) * kChannels +
                                     static_cast<std::size_t>(channel);
                 interleavedStereo[offset] += sampler_[source];
@@ -365,7 +368,8 @@ std::vector<float> Mixer::beats(int deck) const {
     return times;
 }
 
-void Mixer::addInput(float* interleavedStereo, const float* const* input, int channels, int frames) noexcept {
+void Mixer::addInput(float* interleavedStereo, const float* const* input, int channels,
+                     int frames) noexcept {
     if (interleavedStereo == nullptr || input == nullptr || channels <= 0 || frames <= 0 ||
         inputGain_ <= 0.0f) {
         return;
@@ -377,7 +381,8 @@ void Mixer::addInput(float* interleavedStereo, const float* const* input, int ch
             if (source == nullptr) {
                 continue;
             }
-            const auto offset = static_cast<std::size_t>(frame) * kChannels + static_cast<std::size_t>(channel);
+            const auto offset =
+                static_cast<std::size_t>(frame) * kChannels + static_cast<std::size_t>(channel);
             interleavedStereo[offset] += source[frame] * inputGain_;
         }
     }
@@ -391,7 +396,9 @@ int Mixer::copyRecording(float* destination, int capacity) const {
     return count;
 }
 
-int Mixer::recordingCapacity() const noexcept { return static_cast<int>(record_.size()); }
+int Mixer::recordingCapacity() const noexcept {
+    return static_cast<int>(record_.size());
+}
 
 void Mixer::applyMidi(std::uint8_t status, std::uint8_t data1, std::uint8_t data2) noexcept {
     if ((status & 0xF0) == 0xB0 && data1 == 1) {

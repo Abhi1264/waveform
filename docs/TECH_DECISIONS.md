@@ -413,6 +413,9 @@ network call the user did not ask for.
 - Every AI feature has a deterministic path or degrades gracefully when no model is
   installed.
 
+The first manifest is Open-Unmix UMX-HQ ([MODELS.md](MODELS.md)). ONNX Runtime is not
+linked: the weights are PyTorch checkpoints, so the runtime would not run them.
+
 ### ADR-019: Privacy by default
 
 **Status:** Accepted
@@ -423,11 +426,29 @@ listed in `docs/PRIVACY.md` (Phase 1).
 
 ### ADR-020: Licence
 
-**Status:** Deferred (project owner's decision, 2026-10-05)
+**Status:** Accepted (2026-10-06)
 
-**Decision.** No LICENSE file yet, and every package is marked `private` and `UNLICENSED`.
-The options and their consequences are analysed in [LICENSING.md](LICENSING.md). A decision
-is required before the first public binary release or the first outside contribution.
+**Decision.** Waveform is **GNU AGPL-3.0-only**. The text is `LICENSE`, from
+<https://www.gnu.org/licenses/agpl-3.0.txt>. JUCE is used under AGPLv3. A commercial JUCE
+licence was not purchased. Personal use is allowed, and derivatives stay open. The combined
+binary that contains JUCE is AGPL-3.0-only.
+
+npm packages stay `"private": true` so they are not published to npm. Their SPDX field is
+`AGPL-3.0-only`. Rust crates use the same SPDX identifier and `publish = false`. Those
+flags keep the packages off the registries. The source grant is the LICENSE file.
+
+**App Store.** The iOS App Store and the Mac App Store stay blocked. Apple's terms conflict
+with the AGPL. This decision does not unblock them. No iPad or Android project is created
+here, so no store binary is built.
+
+**Contributors.** Sign-off under the Developer Certificate of Origin. No contributor
+licence agreement.
+
+**Consequences.** ASIO's GPLv3 option is compatible. The CMake option stays off unless a
+Windows build opts in, and the SDK is not committed. Stem weights are offered only when
+their own licence allows AGPL redistribution; see [MODELS.md](MODELS.md). The Tracktion
+Waveform trademark is still an open decision. The analysis that led here is in
+[LICENSING.md](LICENSING.md).
 
 ### ADR-021: Prepared audio is a chunked cache
 

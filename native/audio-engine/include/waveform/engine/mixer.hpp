@@ -1,15 +1,14 @@
 #pragma once
 
+#include <atomic>
+#include <cstdint>
+#include <string>
+#include <vector>
+
 #include <waveform/dsp/tone.hpp>
 #include <waveform/engine/command.hpp>
 #include <waveform/engine/prepared_audio.hpp>
 #include <waveform/engine/snapshot.hpp>
-
-#include <atomic>
-#include <cstdint>
-#include <string>
-
-#include <vector>
 
 namespace waveform::engine {
 

@@ -2,7 +2,7 @@
   "name": "waveform",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "packageManager": "pnpm@12.9.1",
   "devEngines": {

@@ -1,10 +1,11 @@
 use waveform_library::Library;
 use waveform_library::midi::{command_for_midi, parse_midi};
 use waveform_library::models::{
-    energy_from_bpm, local_file_source, phrase_starts, recommendation_unavailable, sha256_matches,
+    energy_from_bpm, install_verified, local_file_source, onnx_runtime_status, phrase_starts,
+    recommendation_unavailable, sha256_hex, sha256_matches, stem_weight_licence, stem_weights,
     tracks_are_compatible,
 };
-use waveform_library::stems::write_stems;
+use waveform_library::stems::{stem_audio_paths, write_stems};
 
 #[test]
 fn midi_note_on_is_three_bytes() {
@@ -95,4 +96,45 @@ fn stem_files_are_written_beside_playback() {
         let path = directory.path().join("abc").join(format!("{name}.bin"));
         assert_eq!(std::fs::read(path).expect("read"), b"pcm");
     }
+    assert!(stem_audio_paths(&directory.path().join("abc")).is_empty());
+    std::fs::write(directory.path().join("abc").join("vocals.wav"), b"wav").expect("wav");
+    std::fs::write(directory.path().join("abc").join("drums.aiff"), b"aiff").expect("aiff");
+    let playable = stem_audio_paths(&directory.path().join("abc"));
+    assert_eq!(playable.len(), 2);
+    assert!(playable[0].ends_with("vocals.wav"));
+    assert!(playable[1].ends_with("drums.aiff"));
+}
+
+#[test]
+fn stem_manifest_installs_only_when_the_hash_matches() {
+    assert_eq!(stem_weight_licence(), "MIT");
+    assert!(onnx_runtime_status().contains("not linked"));
+    let weights = stem_weights();
+    assert_eq!(weights.len(), 4);
+    let mut total = 0_u64;
+    for weight in weights {
+        assert!(
+            weight
+                .url
+                .starts_with("https://zenodo.org/api/records/3370489/files/")
+        );
+        assert_eq!(weight.sha256.len(), 64);
+        assert_eq!(weight.size_bytes, 35_637_796);
+        total += weight.size_bytes;
+        let directory = tempfile::tempdir().expect("temp");
+        let destination = directory.path().join(weight.file_name);
+        let rejected = install_verified(b"nope", weight.sha256, weight.size_bytes, &destination);
+        assert!(rejected.is_err());
+        assert!(!destination.exists());
+    }
+    assert_eq!(total, 142_551_184);
+
+    let bytes = b"local-weight";
+    let directory = tempfile::tempdir().expect("temp");
+    let destination = directory.path().join("vocals.pth");
+    install_verified(bytes, &sha256_hex(bytes), bytes.len() as u64, &destination).expect("install");
+    assert_eq!(std::fs::read(&destination).expect("read"), bytes);
+    let wrong_hash = directory.path().join("rejected.pth");
+    assert!(install_verified(bytes, "00", bytes.len() as u64, &wrong_hash).is_err());
+    assert!(!wrong_hash.exists());
 }

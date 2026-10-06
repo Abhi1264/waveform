@@ -48,12 +48,15 @@ cargo test --workspace                      # the Rust tests
 
 ## Licence
 
-No licence has been chosen yet; [LICENSING.md](docs/LICENSING.md) sets out the options.
-Until one is chosen, all rights are reserved and outside contributions cannot be accepted.
+Waveform is free software under the GNU Affero General Public License, version 3 only
+([`LICENSE`](LICENSE), [LICENSING.md](docs/LICENSING.md)). Personal use is allowed.
+Derivatives stay open. The iOS App Store and the Mac App Store stay blocked: Apple's
+terms conflict with the AGPL.
 
-**JUCE notice.** Waveform uses [JUCE](https://juce.com), which is available under AGPLv3 or
-a commercial licence. **A commercial JUCE licence may be required**, depending on how
-Waveform is licensed and distributed. [LICENSING.md](docs/LICENSING.md) explains when.
+**JUCE notice.** Waveform uses [JUCE](https://juce.com) under AGPLv3. A commercial JUCE
+licence was not purchased. **A commercial JUCE licence may be required** for a build that
+is not AGPL. [LICENSING.md](docs/LICENSING.md) explains that. The combined binary that
+contains JUCE is AGPL-3.0-only.
 
 Third-party components and their licences are listed in
 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

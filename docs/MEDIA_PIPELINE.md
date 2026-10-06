@@ -16,6 +16,10 @@ Import turns a folder of files into library rows without running on the audio th
 - MediaBunny 1.61.1 inspects a blob in `apps/desktop/src/media/inspect.worker.ts`. It reads
   title, artist and whether cover art is present. It does not decode for playback.
 
+Stem weights, when the user downloads them, are described in [MODELS.md](MODELS.md). That
+download does not decode audio and does not run on the audio thread. A stem that already
+exists as an audio file is just another file for the deck loader.
+
 ## What a later import step stores
 
 Peaks, BPM, beat grid, key, loudness. Each step can fail on its own. A track may play once

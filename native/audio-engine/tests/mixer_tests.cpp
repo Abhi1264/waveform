@@ -27,8 +27,8 @@ float rms(const std::vector<float>& interleaved) {
     return static_cast<float>(std::sqrt(sum / static_cast<double>(interleaved.size())));
 }
 
-EngineSnapshot render(Mixer& mixer, const std::vector<Command>& commands, std::vector<float>& output,
-                      int frames) {
+EngineSnapshot render(Mixer& mixer, const std::vector<Command>& commands,
+                      std::vector<float>& output, int frames) {
     EngineSnapshot snapshot;
     mixer.process(commands.data(), static_cast<int>(commands.size()), output.data(), frames,
                   snapshot);
@@ -94,8 +94,8 @@ TEST_CASE("Sync, looping and EQ do what a DJ expects", "[mixer]") {
     Mixer synced;
     synced.prepare(48000.0, 4800);
     std::vector<float> output(4800 * 2);
-    const auto after = render(synced, {Command{CommandKind::Sync, 0, 0}, Command{CommandKind::Play, 0, 0}},
-                              output, 4800);
+    const auto after = render(
+        synced, {Command{CommandKind::Sync, 0, 0}, Command{CommandKind::Play, 0, 0}}, output, 4800);
     // Deck A is 120 BPM and deck B is 128, so sync speeds A up by 128/120.
     REQUIRE_THAT(static_cast<double>(after.positionSeconds[0]),
                  WithinAbs(4800.0 / 48000.0 * (128.0 / 120.0), 0.002));
@@ -103,32 +103,34 @@ TEST_CASE("Sync, looping and EQ do what a DJ expects", "[mixer]") {
     Mixer looped;
     looped.prepare(48000.0, 48000);
     std::vector<float> loopOut(48000 * 2);
-    const auto loopedSnapshot = render(
-        looped,
-        {Command{CommandKind::SetLoop, 0, 0.0f, 0.05f, 1}, Command{CommandKind::Play, 0, 0}},
-        loopOut, 48000);
+    const auto loopedSnapshot =
+        render(looped,
+               {Command{CommandKind::SetLoop, 0, 0.0f, 0.05f, 1}, Command{CommandKind::Play, 0, 0}},
+               loopOut, 48000);
     REQUIRE(loopedSnapshot.positionSeconds[0] < 0.05f);
 
     Mixer quietLow;
     quietLow.prepare(48000.0, 4800);
     std::vector<float> flat(4800 * 2);
     std::vector<float> cut(4800 * 2);
-    render(quietLow, {Command{CommandKind::SetToneFrequency, 0, 80.0f}, Command{CommandKind::Play, 0, 0}},
+    render(quietLow,
+           {Command{CommandKind::SetToneFrequency, 0, 80.0f}, Command{CommandKind::Play, 0, 0}},
            flat, 4800);
     Mixer cutLow;
     cutLow.prepare(48000.0, 4800);
     render(cutLow,
-           {Command{CommandKind::SetToneFrequency, 0, 80.0f}, Command{CommandKind::SetEq, 0, -24.0f, 0.0f, 0},
-            Command{CommandKind::Play, 0, 0}},
+           {Command{CommandKind::SetToneFrequency, 0, 80.0f},
+            Command{CommandKind::SetEq, 0, -24.0f, 0.0f, 0}, Command{CommandKind::Play, 0, 0}},
            cut, 4800);
     REQUIRE(rms(cut) < rms(flat) * 0.5f);
 
     Mixer cues;
     cues.prepare(48000.0, 256);
     std::vector<float> cueOut(256 * 2);
-    const auto jumped = render(
-        cues, {Command{CommandKind::SetHotCue, 0, 2.0f, 0.0f, 3}, Command{CommandKind::JumpHotCue, 0, 0, 0, 3}},
-        cueOut, 256);
+    const auto jumped = render(cues,
+                               {Command{CommandKind::SetHotCue, 0, 2.0f, 0.0f, 3},
+                                Command{CommandKind::JumpHotCue, 0, 0, 0, 3}},
+                               cueOut, 256);
     REQUIRE_THAT(static_cast<double>(jumped.positionSeconds[0]), WithinAbs(2.0, 0.01));
 }
 
@@ -140,8 +142,7 @@ TEST_CASE("Seek, beat jump, a filter, the sampler and recording", "[mixer]") {
     const auto sought = render(mixer, {Command{CommandKind::Seek, 0, 3.0f}}, output, 512);
     REQUIRE_THAT(static_cast<double>(sought.positionSeconds[0]), WithinAbs(3.0, 0.001));
 
-    const auto jumped =
-        render(mixer, {Command{CommandKind::BeatJump, 0, 4.0f}}, output, 512);
+    const auto jumped = render(mixer, {Command{CommandKind::BeatJump, 0, 4.0f}}, output, 512);
     // 120 BPM, four beats, from 3 seconds, lands at 5 seconds.
     REQUIRE_THAT(static_cast<double>(jumped.positionSeconds[0]), WithinAbs(5.0, 0.001));
 
@@ -149,7 +150,8 @@ TEST_CASE("Seek, beat jump, a filter, the sampler and recording", "[mixer]") {
     std::vector<float> closed(4800 * 2);
     Mixer dry;
     dry.prepare(48000.0, 4800);
-    render(dry, {Command{CommandKind::SetToneFrequency, 0, 4000.0f}, Command{CommandKind::Play, 0, 0}},
+    render(dry,
+           {Command{CommandKind::SetToneFrequency, 0, 4000.0f}, Command{CommandKind::Play, 0, 0}},
            open, 4800);
     Mixer filtered;
     filtered.prepare(48000.0, 4800);
@@ -168,8 +170,8 @@ TEST_CASE("Seek, beat jump, a filter, the sampler and recording", "[mixer]") {
     Mixer recorder;
     recorder.prepare(48000.0, 512);
     std::vector<float> taken(512 * 2);
-    render(recorder, {Command{CommandKind::ArmRecord, 0, 1.0f}, Command{CommandKind::Play, 0, 0}}, taken,
-           512);
+    render(recorder, {Command{CommandKind::ArmRecord, 0, 1.0f}, Command{CommandKind::Play, 0, 0}},
+           taken, 512);
     std::vector<float> stored(static_cast<std::size_t>(recorder.recordingCapacity()));
     const int copied = recorder.copyRecording(stored.data(), static_cast<int>(stored.size()));
     REQUIRE(copied == 512 * 2);
@@ -247,10 +249,11 @@ TEST_CASE("A background write does not create an xrun while four decks play", "[
     EngineSnapshot snapshot;
     for (int index = 0; index < 50; ++index) {
         const Command play{CommandKind::Play, 0, 0.0f};
-        snapshot = render(mixer, {play, Command{CommandKind::Play, 1, 0.0f},
-                                   Command{CommandKind::Play, 2, 0.0f},
-                                   Command{CommandKind::Play, 3, 0.0f}},
-                          output, 256);
+        snapshot =
+            render(mixer,
+                   {play, Command{CommandKind::Play, 1, 0.0f}, Command{CommandKind::Play, 2, 0.0f},
+                    Command{CommandKind::Play, 3, 0.0f}},
+                   output, 256);
     }
     writing.store(false);
     worker.join();

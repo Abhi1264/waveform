@@ -14,7 +14,7 @@ namespace waveform::engine {
 /// been published, so it does not open the file, allocate, or lock.
 class PreparedAudio {
 public:
-    PreparedAudio() = default;
+    PreparedAudio();
     ~PreparedAudio();
 
     PreparedAudio(const PreparedAudio&) = delete;
@@ -42,9 +42,11 @@ private:
     static constexpr int kChunkFrames = 4096;
     static constexpr int kChunkCount = 8;
 
+    // Samples live on the heap. Four decks of inline chunks are about a
+    // megabyte, which overflows the 1 MB stack Windows gives a thread.
     struct Chunk {
         std::atomic<std::int64_t> readyFor{-1};
-        float samples[static_cast<std::size_t>(kChunkFrames) * 2] = {};
+        std::vector<float> samples;
     };
 
     Chunk chunks_[kChunkCount];

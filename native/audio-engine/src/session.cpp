@@ -1,8 +1,5 @@
 #include <waveform/engine/session.hpp>
 
-#include <waveform/engine/command_queue.hpp>
-#include <waveform/engine/mixer.hpp>
-
 #include <condition_variable>
 #include <cstring>
 #include <mutex>
@@ -13,6 +10,9 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_events/juce_events.h>
+
+#include <waveform/engine/command_queue.hpp>
+#include <waveform/engine/mixer.hpp>
 
 namespace waveform::engine {
 
@@ -41,8 +41,8 @@ struct Session::Impl : private juce::AudioIODeviceCallback {
             for (auto* type : manager.getAvailableDeviceTypes()) {
                 type->scanForDevices();
                 for (const auto& name : type->getDeviceNames(false)) {
-                    devices.push_back(OutputDevice{type->getTypeName().toStdString(),
-                                                   name.toStdString()});
+                    devices.push_back(
+                        OutputDevice{type->getTypeName().toStdString(), name.toStdString()});
                 }
             }
         });
@@ -80,7 +80,9 @@ struct Session::Impl : private juce::AudioIODeviceCallback {
         });
     }
 
-    void close() { runOnMessageThread([&] { closeDevice(); }); }
+    void close() {
+        runOnMessageThread([&] { closeDevice(); });
+    }
 
     void submit(Command command) {
         std::lock_guard lock(producer);
@@ -125,9 +127,10 @@ struct Session::Impl : private juce::AudioIODeviceCallback {
         publisher.publish(next);
     }
 
-    void audioDeviceIOCallbackWithContext(const float* const* input, int numInputChannels,
-                                          float* const* output, int numOutputChannels, int numSamples,
-                                          const juce::AudioIODeviceCallbackContext& /*context*/) override {
+    void audioDeviceIOCallbackWithContext(
+        const float* const* input, int numInputChannels, float* const* output,
+        int numOutputChannels, int numSamples,
+        const juce::AudioIODeviceCallbackContext& /*context*/) override {
         juce::ScopedNoDenormals flushDenormals;
         callbackCount.fetch_add(1, std::memory_order_relaxed);
         // A fixed array: the callback must not allocate. Anything that does not
@@ -275,21 +278,33 @@ Session::Session() : impl_(std::make_unique<Impl>()) {}
 
 Session::~Session() = default;
 
-std::vector<OutputDevice> Session::outputDevices() const { return impl_->outputDevices(); }
+std::vector<OutputDevice> Session::outputDevices() const {
+    return impl_->outputDevices();
+}
 
-std::string Session::openDefaultOutput() { return impl_->openDefaultOutput(); }
+std::string Session::openDefaultOutput() {
+    return impl_->openDefaultOutput();
+}
 
-std::string Session::openOutput(const std::string& name) { return impl_->openOutput(name); }
+std::string Session::openOutput(const std::string& name) {
+    return impl_->openOutput(name);
+}
 
-void Session::close() { impl_->close(); }
+void Session::close() {
+    impl_->close();
+}
 
-void Session::play(int deck) { impl_->submit(Command{CommandKind::Play, static_cast<std::uint8_t>(deck), 0}); }
+void Session::play(int deck) {
+    impl_->submit(Command{CommandKind::Play, static_cast<std::uint8_t>(deck), 0});
+}
 
 void Session::pause(int deck) {
     impl_->submit(Command{CommandKind::Pause, static_cast<std::uint8_t>(deck), 0});
 }
 
-void Session::cue(int deck) { impl_->submit(Command{CommandKind::Cue, static_cast<std::uint8_t>(deck), 0}); }
+void Session::cue(int deck) {
+    impl_->submit(Command{CommandKind::Cue, static_cast<std::uint8_t>(deck), 0});
+}
 
 void Session::setGainDb(int deck, float decibels) {
     impl_->submit(Command{CommandKind::SetGainDb, static_cast<std::uint8_t>(deck), decibels});
@@ -318,21 +333,33 @@ void Session::command(std::uint8_t kind, int deck, float value, float value2, st
     impl_->submit(message);
 }
 
-EngineSnapshot Session::snapshot() const { return impl_->snapshot(); }
+EngineSnapshot Session::snapshot() const {
+    return impl_->snapshot();
+}
 
 std::string Session::loadFile(int deck, const std::string& path) {
     return impl_->mixer.loadFile(deck, path);
 }
 
-std::vector<float> Session::peaks(int deck) const { return impl_->mixer.peaks(deck); }
+std::vector<float> Session::peaks(int deck) const {
+    return impl_->mixer.peaks(deck);
+}
 
-float Session::bpm(int deck) const { return impl_->mixer.bpm(deck); }
+float Session::bpm(int deck) const {
+    return impl_->mixer.bpm(deck);
+}
 
-std::string Session::key(int deck) const { return impl_->mixer.key(deck); }
+std::string Session::key(int deck) const {
+    return impl_->mixer.key(deck);
+}
 
-double Session::duration(int deck) const { return impl_->mixer.duration(deck); }
+double Session::duration(int deck) const {
+    return impl_->mixer.duration(deck);
+}
 
-std::vector<float> Session::beats(int deck) const { return impl_->mixer.beats(deck); }
+std::vector<float> Session::beats(int deck) const {
+    return impl_->mixer.beats(deck);
+}
 
 std::string Session::writeRecording(const std::string& path) {
     const int capacity = impl_->mixer.recordingCapacity();
@@ -354,9 +381,9 @@ std::string Session::writeRecording(const std::string& path) {
     std::unique_ptr<juce::OutputStream> output = std::move(stream);
     juce::WavAudioFormat wav;
     auto writer = wav.createWriterFor(output, juce::AudioFormatWriter::Options{}
-                                                 .withSampleRate(impl_->mixer.sampleRate())
-                                                 .withNumChannels(2)
-                                                 .withBitsPerSample(16));
+                                                  .withSampleRate(impl_->mixer.sampleRate())
+                                                  .withNumChannels(2)
+                                                  .withBitsPerSample(16));
     if (writer == nullptr) {
         return "Could not write a wav file.";
     }
@@ -375,7 +402,9 @@ void Session::processOffline(float* interleavedStereo, int frames, double sample
     impl_->processOffline(interleavedStereo, frames, sampleRate);
 }
 
-void Session::simulateDeviceStopped() { impl_->simulateDeviceStopped(); }
+void Session::simulateDeviceStopped() {
+    impl_->simulateDeviceStopped();
+}
 
 void Session::simulateDeviceStarted(double sampleRate, int bufferSize, const std::string& name) {
     impl_->simulateDeviceStarted(sampleRate, bufferSize, name);

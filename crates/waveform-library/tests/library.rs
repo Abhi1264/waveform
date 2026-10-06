@@ -1,9 +1,18 @@
 use std::fs;
+use std::sync::Mutex;
 use std::time::Instant;
 
 use waveform_library::{
     HashAlgorithm, JobQueue, Library, content_hash, hash_file, time_directory_hash,
 };
+
+/// The search budget assumes a quiet disk. The hash benchmark writes a hundred
+/// thousand files; running the two together makes the timed query miss 50 ms
+/// on a busy CI runner.
+fn quiet_disk() -> std::sync::MutexGuard<'static, ()> {
+    static LOCK: Mutex<()> = Mutex::new(());
+    LOCK.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
 
 #[test]
 fn migration_search_and_a_corrupt_file() {
@@ -30,6 +39,7 @@ fn migration_search_and_a_corrupt_file() {
 
 #[test]
 fn search_of_one_hundred_thousand_tracks_stays_under_50ms() {
+    let _quiet = quiet_disk();
     let directory = tempfile::tempdir().expect("temp");
     let mut library = Library::open(directory.path().join("library.sqlite")).expect("open");
     let mut titles = Vec::with_capacity(100_000);
@@ -68,6 +78,7 @@ fn the_import_queue_returns_before_the_worker_finishes() {
 
 #[test]
 fn blake3_and_xxh3_both_name_a_hundred_thousand_files() {
+    let _quiet = quiet_disk();
     let directory = tempfile::tempdir().expect("temp");
     for index in 0..100_000 {
         let path = directory.path().join(format!("track-{index}.wav"));

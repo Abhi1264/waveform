@@ -12,6 +12,8 @@ function LibraryPanel({ onOpen }: { onOpen: (path: string) => void }) {
   const [folder, setFolder] = useState("")
   const [tracks, setTracks] = useState<LibraryTrack[]>([])
   const [status, setStatus] = useState("")
+  const [stemPath, setStemPath] = useState("")
+  const [downloadingModel, setDownloadingModel] = useState(false)
   const [playlist, setPlaylist] = useState("")
   const [kind, setKind] = useState("playlist")
   const [minBpm, setMinBpm] = useState("110")
@@ -93,6 +95,65 @@ function LibraryPanel({ onOpen }: { onOpen: (path: string) => void }) {
       <p role="status" className="text-caption text-muted-foreground">
         {status}
       </p>
+      <form
+        className="flex flex-col gap-2"
+        onSubmit={(event) => {
+          event.preventDefault()
+          const path = stemPath.trim()
+          if (path.length === 0) return
+          onOpen(path)
+          setStatus(
+            "Loaded that file on deck A. This plays a file already on disk. It does not separate the track."
+          )
+        }}
+      >
+        <div className="flex gap-2">
+          <input
+            aria-label="Stem audio file"
+            value={stemPath}
+            onChange={(event) => {
+              setStemPath(event.target.value)
+            }}
+            className="min-w-0 flex-1 rounded-md border border-divider bg-surface px-3 py-2"
+          />
+          <Button type="submit" variant="outline">
+            Load stem on deck A
+          </Button>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          isDisabled={downloadingModel}
+          onPress={() => {
+            setDownloadingModel(true)
+            setStatus(
+              "Downloading Open-Unmix UMX-HQ. Nothing is separated until a model actually runs, and this one does not."
+            )
+            void commands
+              .downloadStemModel()
+              .then((result) => {
+                setDownloadingModel(false)
+                setStatus(
+                  result.status === "error" ? result.error : result.data
+                )
+              })
+              .catch((reason: unknown) => {
+                setDownloadingModel(false)
+                setStatus(
+                  reason instanceof Error ? reason.message : String(reason)
+                )
+              })
+          }}
+        >
+          Download stem model
+        </Button>
+        <p className="text-caption text-muted-foreground">
+          The download is 142,551,184 bytes from Zenodo, under the MIT licence.
+          Waveform checks the SHA-256 before it treats the files as installed.
+          They are PyTorch weights. ONNX Runtime is not linked, so separation
+          does not run.
+        </p>
+      </form>
       <form
         className="flex gap-2"
         onSubmit={(event) => {

@@ -48,6 +48,7 @@ fn commands() -> Builder<tauri::Wry> {
         library::list_folders,
         library::tag_track,
         library::recent_plays,
+        library::download_stem_model,
     ])
 }
 

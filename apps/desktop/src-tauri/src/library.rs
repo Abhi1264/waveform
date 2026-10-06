@@ -8,6 +8,7 @@ use specta::Type;
 use tauri::ipc::Channel;
 use tauri::{AppHandle, Manager, State};
 use waveform_library::Library;
+use waveform_library::models::{self, stem_model_relative_dir};
 
 /// One search hit. Paths are included so the user can load the file they picked.
 #[derive(Debug, Clone, Serialize, Type)]
@@ -326,6 +327,23 @@ pub fn recent_plays(library: State<'_, LibraryState>) -> Result<Vec<LibraryTrack
         .and_then(|reader| reader.recent_plays())
         .map_err(|error| error.to_string())?;
     Ok(tracks.into_iter().map(to_track).collect())
+}
+
+/// Downloads Open-Unmix UMX-HQ after the user asks. Not called at startup.
+/// A weight file is kept only when its SHA-256 matches the manifest.
+#[tauri::command]
+#[specta::specta]
+pub fn download_stem_model(app: AppHandle) -> Result<String, String> {
+    let directory = app
+        .path()
+        .app_data_dir()
+        .map_err(|error| error.to_string())?
+        .join(stem_model_relative_dir());
+    models::download_stem_model(&directory).map_err(|error| error.to_string())?;
+    Ok(
+        "Open-Unmix UMX-HQ is installed. These are PyTorch weights, and Waveform did not separate any audio."
+            .to_owned(),
+    )
 }
 
 /// Stored controller mappings.

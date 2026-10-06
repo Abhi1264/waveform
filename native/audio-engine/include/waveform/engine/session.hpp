@@ -1,11 +1,11 @@
 #pragma once
 
-#include <waveform/engine/snapshot.hpp>
-
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <waveform/engine/snapshot.hpp>
 
 namespace waveform::engine {
 

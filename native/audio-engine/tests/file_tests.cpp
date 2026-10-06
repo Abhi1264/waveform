@@ -1,5 +1,3 @@
-#include <waveform/engine/mixer.hpp>
-
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -9,6 +7,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <juce_audio_formats/juce_audio_formats.h>
+
+#include <waveform/engine/mixer.hpp>
 
 using Catch::Matchers::WithinAbs;
 
@@ -54,8 +54,8 @@ float rms(const std::vector<float>& interleaved) {
 } // namespace
 
 TEST_CASE("A wav file plays from prepared chunks and yields peaks", "[file]") {
-    const auto directory =
-        juce::File::getSpecialLocation(juce::File::tempDirectory).getChildFile("waveform-file-test");
+    const auto directory = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                               .getChildFile("waveform-file-test");
     directory.createDirectory();
     const auto file = directory.getChildFile("tone.wav");
     file.deleteFile();
@@ -73,7 +73,8 @@ TEST_CASE("A wav file plays from prepared chunks and yields peaks", "[file]") {
 
     juce::AudioBuffer<float> buffer(2, 48000);
     for (int index = 0; index < buffer.getNumSamples(); ++index) {
-        const auto sample = static_cast<float>(std::sin(2.0 * 3.141592653589793 * 440.0 * index / 48000.0));
+        const auto sample =
+            static_cast<float>(std::sin(2.0 * 3.141592653589793 * 440.0 * index / 48000.0));
         buffer.setSample(0, index, static_cast<float>(sample));
         buffer.setSample(1, index, static_cast<float>(sample));
     }
@@ -134,8 +135,9 @@ TEST_CASE("Two loaded files can be beat-matched, crossfaded, looped and cued", "
     bool heard = false;
     EngineSnapshot snapshot;
     for (int attempt = 0; attempt < 40; ++attempt) {
-        mixer.process(attempt == 0 ? mix.data() : nullptr, attempt == 0 ? static_cast<int>(mix.size()) : 0,
-                      output.data(), 2048, snapshot);
+        mixer.process(attempt == 0 ? mix.data() : nullptr,
+                      attempt == 0 ? static_cast<int>(mix.size()) : 0, output.data(), 2048,
+                      snapshot);
         if (rms(output) > 0.02f) {
             heard = true;
             break;

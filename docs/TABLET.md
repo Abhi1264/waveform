@@ -7,8 +7,9 @@ no tablet was attached, so this spike did not compile a Tauri Android activity.
 
 Keep device I/O on JUCE. If a later Android build shows that JUCE cannot run inside Tauri's
 activity, switch only the device open/close path to Oboe and leave the mixer as it is. That
-is the fallback already written in [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md). App Store and
-Play Store builds stay blocked until the app licence and the JUCE licence allow them.
+is the fallback already written in [PLATFORM_SUPPORT.md](PLATFORM_SUPPORT.md). App Store
+and Play Store binaries stay unbuilt. The AGPL conflicts with the iOS and Mac App Store
+terms, and there is still no Android or iPad project.
 
 ## Layout
 

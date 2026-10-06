@@ -36,8 +36,8 @@ void ToneSource::render(float* interleavedStereo, int frames) noexcept {
             rng_ ^= rng_ << 13;
             rng_ ^= rng_ >> 17;
             rng_ ^= rng_ << 5;
-            const float sample = static_cast<float>(static_cast<std::int32_t>(rng_)) /
-                                 static_cast<float>(INT32_MAX);
+            const float sample =
+                static_cast<float>(static_cast<std::int32_t>(rng_)) / static_cast<float>(INT32_MAX);
             interleavedStereo[frame * 2] = sample;
             interleavedStereo[frame * 2 + 1] = sample;
         }

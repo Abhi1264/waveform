@@ -163,6 +163,11 @@ jobs:
             libwebkit2gtk-4.1-dev libxdo-dev xvfb
       - name: Install CMake and Ninja
         run: pipx install "cmake==$CMAKE_VERSION" && pipx install "ninja==$NINJA_VERSION"
+      # JUCE's object files reference Windows SDK libraries. rustc only finds
+      # them when this step has put the MSVC environment on PATH and LIB.
+      - name: Set up the MSVC environment for Ninja
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
       - name: Install the Rust toolchain from rust-toolchain.toml
         run: rustup toolchain install && rustup show active-toolchain
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2

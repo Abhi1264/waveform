@@ -1,23 +1,36 @@
 # Licensing
 
-Status: **the project licence is not decided.** The project owner deferred the decision on
-2026-10-05 (ADR-020). This document lays out the facts and options so it can be made
-deliberately. It is not legal advice: confirm the final choice with a lawyer, especially
-for App Store distribution and any commercial use.
+Status: **GNU AGPL-3.0-only**, accepted on 2026-10-06 (ADR-020). The grant is the
+[`LICENSE`](../LICENSE) file, copied from <https://www.gnu.org/licenses/agpl-3.0.txt>. This
+document is not legal advice.
+
+Personal use is allowed. A binary that contains JUCE is AGPL-3.0-only as a whole, and
+recipients get the corresponding source. Derivatives stay open.
+
+**The iOS App Store and the Mac App Store stay blocked.** Apple's terms add restrictions
+that the Free Software Foundation treats as incompatible with the GPL family. Choosing
+AGPL does not clear those stores. A commercial JUCE licence was not purchased. There is
+no iPad or Android project in this tree, so no App Store or Play Store binary is built.
+
+npm packages stay `"private": true`, so they are not published to the npm registry. Their
+`"license"` field is `AGPL-3.0-only`. Rust crates set `license = "AGPL-3.0-only"` and
+`publish = false`. `private` and `publish = false` are about the package registries. The
+source grant is the LICENSE file.
 
 Facts below were checked on 2026-10-05 against JUCE 9.0.3's `LICENSE.md`, its software bill
 of materials (`JUCE.spdx.json`), the JUCE 9 end user licence agreement (EULA) at
-juce.com/legal/juce-9-licence, and the package registries.
+juce.com/legal/juce-9-licence, and the package registries. The project decision was made
+on 2026-10-06. Model licences were checked the same day; see [MODELS.md](MODELS.md).
 
-## Rules until a licence is chosen
+## What the choice means
 
-- There is no LICENSE file. Without one, the code is "all rights reserved": nobody else may
-  legally use, modify or redistribute it, even if the repository becomes public.
-- Every package is marked `"private": true` and `"license": "UNLICENSED"`; Rust crates set
-  `publish = false`.
-- No public binaries are released and no outside contributions are accepted.
-- Dependencies are chosen so that no option below is ruled out: no GPL-only dependencies
-  and no dependencies whose licences are incompatible with AGPLv3.
+- Waveform's own code is AGPL-3.0-only. JUCE is used under AGPLv3, not under a commercial
+  JUCE licence.
+- Outside contributions are accepted under that licence with a Developer Certificate of
+  Origin sign-off. There is no contributor licence agreement. See below.
+- A GPLv3 dependency is compatible. The ASIO headers are the case that matters; see below.
+- Dependencies that forbid commercial use, or that forbid redistribution, are still not
+  allowed. That is why several stem models are rejected in [MODELS.md](MODELS.md).
 
 ## JUCE
 
@@ -81,10 +94,13 @@ what Waveform actually compiles in.
 
 ### ASIO on Windows
 
-The ASIO SDK is available under GPLv3 or under Steinberg's own licence. A GPLv3-compatible
-Waveform build (any option below combined with AGPL JUCE) can use the GPLv3 option. A
-build using commercially licensed JUCE would need Steinberg's licence instead. Without
-ASIO, Windows audio still works through WASAPI. Decided in Phase 7.
+The ASIO SDK is available under GPLv3 or under Steinberg's own licence. This project is
+AGPL-3.0-only and has not bought a commercial JUCE licence, so the GPLv3 option is the one
+that applies. JUCE 9.0.3 already carries those headers. `WAVEFORM_ENABLE_ASIO` stays **off**
+unless a Windows build turns it on, and CI does not set it. If the headers are missing,
+CMake stops and ASIO is not compiled. Windows audio without the option is WASAPI. The SDK
+is not committed and is not downloaded by this repository. Details are in
+[CONTROLLER_SUPPORT.md](CONTROLLER_SUPPORT.md).
 
 ## Options for Waveform's own code
 
@@ -108,20 +124,24 @@ Notes:
   use other licences. MediaBunny uses MPL-2.0, and MPL-2.0 apps already ship on the App
   Store (for example Firefox for iOS).
 
-To decide, the project owner needs to answer:
+The answers that produced AGPL-3.0-only, recorded on 2026-10-06:
 
-1. Is iPadOS App Store distribution a goal?
-2. Should others be allowed to build closed-source products from Waveform's code?
-3. Would the project buy a commercial JUCE licence if revenue or funding passes $20,000?
-4. Who holds the copyright: an individual, a company or a foundation?
+1. iPadOS and Mac App Store distribution are not a goal of this licence. Those stores stay
+   blocked. Personal use on a Mac, outside the Mac App Store, is allowed.
+2. Closed-source products built from Waveform's code are not allowed. Derivatives stay open.
+3. A commercial JUCE licence has not been purchased. The JUCE in this tree is the AGPL
+   option.
+4. Copyright is the author's. The repository does not assign it to a company or a foundation.
 
-## Contributor terms: CLA or DCO
+## Contributor terms: DCO
 
-- **Developer Certificate of Origin (DCO):** each commit carries a `Signed-off-by` line
-  certifying the contributor's right to submit it. Low friction. It does not allow
-  relicensing.
-- **Contributor Licence Agreement (CLA):** contributors grant the project rights over
-  their contributions, which can include relicensing. It is needed for dual licensing
+Contributions are accepted under AGPL-3.0-only. The default is the Developer Certificate
+of Origin: each commit carries a `Signed-off-by` line certifying the contributor's right
+to submit it. There is no contributor licence agreement. A CLA would only be needed to
+relicense later, and this project is not set up to do that.
+
+- **Developer Certificate of Origin (DCO):** low friction. It does not allow relicensing.
+- **Contributor Licence Agreement (CLA):** not used. It would be needed for dual licensing
   under option A. Higher friction; some contributors refuse to sign CLAs.
 
 ## Other dependencies
@@ -132,7 +152,7 @@ To decide, the project owner needs to answer:
 | MPL-2.0                                                                         | Allowed. Modified files must stay MPL-2.0. MediaBunny 1.61.1 is MPL-2.0.                         |
 | SIL OFL 1.1 (fonts)                                                             | Allowed. Ship the licence text; never sell the fonts on their own.                               |
 | LGPL                                                                            | Needs a recorded decision: static and mobile builds make its relinking obligations hard to meet. |
-| GPL or AGPL (other than JUCE and the ASIO SDK)                                  | Needs a recorded decision: it would force option A.                                              |
+| GPL or AGPL (other than JUCE and the ASIO SDK)                                  | Allowed. The project is AGPL-3.0-only. Record an addition in THIRD_PARTY_LICENSES.md.            |
 | Non-commercial, no-derivatives, or no licence at all                            | Not allowed.                                                                                     |
 
 ## Codecs and patents
@@ -150,9 +170,23 @@ Patent law differs by country. Get advice before any commercial distribution.
 ## AI models
 
 Model weights often have licences different from the code that runs them, and some forbid
-commercial use. Each model is tracked separately in its download manifest (ADR-018), and
-only models whose weights may be redistributed and used commercially are offered. No model
-files are committed to the repository.
+commercial use. Each offered model is tracked in a download manifest (ADR-018) with the
+source URL, size, SHA-256, and licence. No model files are committed.
+
+The research and the choice are in [MODELS.md](MODELS.md). Short version, checked
+2026-10-06:
+
+- **Offered:** Open-Unmix UMX-HQ. Code MIT, weights MIT on Zenodo record 3370489. About
+  136 MB across four PyTorch files. Redistribution inside this AGPL app is allowed, and
+  commercial use of the weights is allowed. They are still downloaded only when the user
+  asks, because of the size, ADR-018, and privacy. ONNX Runtime is not linked, and no
+  neural separation runs.
+- **Not offered:** Demucs and Hybrid Transformer Demucs weights (the author said they are
+  scientific-use only, not MIT). Open-Unmix UMX-L (CC BY-NC-SA 4.0). MDX-Net and UVR
+  weights (no verified per-file licence that is compatible; UVR also redistributes the
+  Demucs weights). No smaller ONNX stem model with a compatible weight licence was found.
+- **No chatbot**, and no recommendation embedding is downloaded. Tempo, key, energy, and
+  phrases work without a model.
 
 ## Trademarks
 

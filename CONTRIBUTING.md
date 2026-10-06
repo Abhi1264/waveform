@@ -1,8 +1,9 @@
 # Contributing
 
-Outside contributions cannot be accepted until the project has a licence
-([LICENSING.md](docs/LICENSING.md)). This guide describes how work is done in the repository,
-for the maintainers now and for contributors later.
+Waveform is AGPL-3.0-only ([LICENSING.md](docs/LICENSING.md)). Contributions are accepted
+under that licence. Add a `Signed-off-by` line to each commit (Developer Certificate of
+Origin). There is no contributor licence agreement. This guide describes how work is done
+in the repository.
 
 ## Ground rules
 
@@ -41,8 +42,7 @@ Reuse what the repository already has first. A new dependency needs:
 
 - a reason, written in the change description or the relevant ADR in
   [TECH_DECISIONS.md](docs/TECH_DECISIONS.md);
-- a licence compatible with every option in [LICENSING.md](docs/LICENSING.md) (no GPL-only
-  code);
+- a licence compatible with AGPL-3.0-only, as recorded in [LICENSING.md](docs/LICENSING.md);
 - an exact version: npm packages through the catalog in `pnpm-workspace.yaml`, crates in the
   root `Cargo.toml`, C++ libraries with a pinned URL and SHA-256 in
   `native/cmake/WaveformDependencies.cmake`;

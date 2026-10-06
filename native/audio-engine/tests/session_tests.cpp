@@ -1,4 +1,3 @@
-#include <waveform/engine/runtime.hpp>
 #include <waveform/engine/session.hpp>
 
 #include <chrono>
@@ -8,6 +7,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <juce_events/juce_events.h>
+
+#include <waveform/engine/runtime.hpp>
 
 using namespace std::chrono_literals;
 

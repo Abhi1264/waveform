@@ -1,4 +1,3 @@
-#include <waveform/dsp/analysis.hpp>
 #include <waveform/engine/prepared_audio.hpp>
 
 #include <algorithm>
@@ -8,6 +7,8 @@
 
 #include <juce_audio_formats/juce_audio_formats.h>
 
+#include <waveform/dsp/analysis.hpp>
+
 namespace waveform::engine {
 
 namespace {
@@ -15,6 +16,12 @@ namespace {
 constexpr int kPeakWindow = 256;
 
 } // namespace
+
+PreparedAudio::PreparedAudio() {
+    for (auto& chunk : chunks_) {
+        chunk.samples.assign(static_cast<std::size_t>(kChunkFrames) * 2, 0.0f);
+    }
+}
 
 PreparedAudio::~PreparedAudio() {
     stopLoader();
@@ -52,22 +59,23 @@ std::string PreparedAudio::load(const std::string& path) {
 
     const auto windows = static_cast<std::size_t>((fileLength_ + kPeakWindow - 1) / kPeakWindow);
     peaks_.assign(windows * 2, 0.0f);
-    const auto analyseFrames =
-        static_cast<std::size_t>(std::min<std::int64_t>(fileLength_, static_cast<std::int64_t>(fileRate_ * 8.0)));
+    const auto analyseFrames = static_cast<std::size_t>(
+        std::min<std::int64_t>(fileLength_, static_cast<std::int64_t>(fileRate_ * 8.0)));
     std::vector<float> mono(analyseFrames);
     std::size_t monoCount = 0;
     std::vector<float> left(static_cast<std::size_t>(kPeakWindow));
     std::vector<float> right(static_cast<std::size_t>(kPeakWindow));
     for (std::int64_t start = 0; start < fileLength_; start += kPeakWindow) {
-        const int count = static_cast<int>(std::min<std::int64_t>(kPeakWindow, fileLength_ - start));
+        const int count =
+            static_cast<int>(std::min<std::int64_t>(kPeakWindow, fileLength_ - start));
         float* channels[2] = {left.data(), right.data()};
         reader->read(channels, 2, start, count);
         float minimum = 0.0f;
         float maximum = 0.0f;
         for (int index = 0; index < count; ++index) {
-            const float sample = (left[static_cast<std::size_t>(index)] +
-                                  right[static_cast<std::size_t>(index)]) *
-                                 0.5f;
+            const float sample =
+                (left[static_cast<std::size_t>(index)] + right[static_cast<std::size_t>(index)]) *
+                0.5f;
             minimum = std::min(minimum, sample);
             maximum = std::max(maximum, sample);
         }
@@ -75,9 +83,9 @@ std::string PreparedAudio::load(const std::string& path) {
         peaks_[window * 2] = minimum;
         peaks_[window * 2 + 1] = maximum;
         for (int index = 0; index < count && monoCount < mono.size(); ++index) {
-            mono[monoCount] = (left[static_cast<std::size_t>(index)] +
-                               right[static_cast<std::size_t>(index)]) *
-                              0.5f;
+            mono[monoCount] =
+                (left[static_cast<std::size_t>(index)] + right[static_cast<std::size_t>(index)]) *
+                0.5f;
             ++monoCount;
         }
     }

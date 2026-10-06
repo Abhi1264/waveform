@@ -143,8 +143,9 @@ work continues.
 - **Acceptance:** each subsystem has its own tests; `docs/CONTROLLER_SUPPORT.md` written.
 - **Result (2026-10-06):** four decks mix with a filter, delay, and reverb. A sampler pad,
   master recording to wav, beat jump, and external-input gain are in the engine. MIDI CC 1
-  moves the crossfader on the audio thread. HID is recorded as `hidapi` and is not linked.
-  ASIO stays off. Controller mappings are stored in the library.
+  moves the crossfader on the audio thread. HID stays `hidapi` and is not linked: no
+  controller was attached, and a native HID dependency was not added. `WAVEFORM_ENABLE_ASIO`
+  exists and defaults off, so ASIO is not compiled. Controller mappings are stored in the library.
 
 ### Phase 8: Tablet experience
 
@@ -167,8 +168,8 @@ work continues.
 - **Acceptance:** every feature works offline with local models or degrades gracefully
   without them; deterministic filters always remain available.
 - **Result (2026-10-06):** tempo, key, energy, and 32-beat phrases work with no model.
-  Recommend is registered, disabled, and says a model is not installed. ONNX Runtime is not
-  linked, and nothing is downloaded.
+  Recommend is registered, disabled, and says a model is not installed. No embedding model
+  and no chatbot are installed. ONNX Runtime is not linked. Nothing downloads at startup.
 
 ### Phase 10: Stems
 
@@ -179,8 +180,10 @@ work continues.
 - **Acceptance:** separation runs as a background job; live playback is unaffected under
   load.
 - **Result (2026-10-06):** stem files are written off the audio thread. A background write
-  while four decks play did not mark an xrun. No separation model is chosen while the app
-  licence is open, so the files are the caller's audio, not a neural split.
+  while four decks play did not mark an xrun. Open-Unmix UMX-HQ is the stem model the user
+  can download; the SHA-256 is checked before those files count as installed. They are
+  PyTorch weights, ONNX Runtime is not linked, and no neural separation runs. A stem that
+  is already an audio file plays through the deck loader.
 
 ### Phase 11: Command system
 
@@ -215,36 +218,37 @@ landing page.
 - Remove dead code, duplicate components, unused dependencies, placeholder copy, debug
   logging, fake functionality and unnecessary abstractions.
 - **Result (2026-10-06):** the numbers that were measured are in [POLISH.md](POLISH.md). No
-  installer was published. The licence, bundle id, and signing identities are still open.
+  installer was published. The licence is AGPL-3.0-only. The bundle id and signing
+  identities are still open.
 
 ## Open decisions
 
-| Decision                                    | Needed by                                   | Notes                                                                                                                                        |
-| ------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Project licence                             | First public binary or outside contribution | Options in [LICENSING.md](LICENSING.md).                                                                                                     |
-| Contributor terms (CLA or DCO)              | Same as the licence                         | Depends on the licence.                                                                                                                      |
-| Product name                                | Public release, website domain              | Tracktion sells a DAW called "Waveform"; trademark check needed.                                                                             |
-| Bundle identifier                           | First signed release                        | `com.abhinavkumarchoudhary.waveform` is provisional. It determines where app data is stored, so changing it after release needs a migration. |
-| JUCE licence path for the App Store         | Phase 8                                     | AGPLv3 is incompatible with App Store distribution; see LICENSING.md.                                                                        |
-| ASIO on Windows                             | Phase 7                                     | The ASIO SDK is GPLv3 or Steinberg-licensed; see LICENSING.md.                                                                               |
-| Minimum OS versions                         | First release                               | macOS 14.0 proposed. Windows, Linux, iPadOS and Android minimums still open.                                                                 |
-| How prepared audio is held                  | Decided in Phase 3                          | Chunked cache around the playhead and hot cues (ADR-021). Whole-track decode was rejected.                                                   |
-| Bulk-import path and content-hash algorithm | Phase 4                                     | Decided by the Phase 4 benchmark.                                                                                                            |
-| HID library                                 | Phase 7                                     |                                                                                                                                              |
-| Stem model                                  | Phase 10                                    | Demucs or MDX family; the model's licence must be compatible.                                                                                |
-| Code-signing identities                     | First public binary                         | Apple Developer ID and notarisation; Windows code signing.                                                                                   |
-| Repository hosting                          | Before CI can run                           | CI is defined in Phase 1 but runs only once the repository is pushed.                                                                        |
+| Decision                                    | Needed by                      | Notes                                                                                                                                        |
+| ------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Project licence                             | Decided 2026-10-06             | GNU AGPL-3.0-only. Packages stay private so they are not published to npm. See [LICENSING.md](LICENSING.md).                                 |
+| Contributor terms (CLA or DCO)              | Decided 2026-10-06             | DCO (`Signed-off-by`). No CLA.                                                                                                               |
+| Product name                                | Public release, website domain | Tracktion sells a DAW called "Waveform"; trademark check needed.                                                                             |
+| Bundle identifier                           | First signed release           | `com.abhinavkumarchoudhary.waveform` is provisional. It determines where app data is stored, so changing it after release needs a migration. |
+| JUCE licence path for the App Store         | Decided 2026-10-06             | Not pursued. AGPL conflicts with the iOS and Mac App Store. A commercial JUCE licence was not purchased.                                     |
+| ASIO on Windows                             | Decided 2026-10-06             | GPLv3 headers are allowed. `WAVEFORM_ENABLE_ASIO` defaults off, and CI does not compile ASIO.                                                |
+| Minimum OS versions                         | First release                  | macOS 14.0 proposed. Windows, Linux, iPadOS and Android minimums still open.                                                                 |
+| How prepared audio is held                  | Decided in Phase 3             | Chunked cache around the playhead and hot cues (ADR-021). Whole-track decode was rejected.                                                   |
+| Bulk-import path and content-hash algorithm | Phase 4                        | Decided by the Phase 4 benchmark.                                                                                                            |
+| HID library                                 | Decided 2026-10-06             | `hidapi`. Not linked: no controller was attached, and the crate was not added.                                                               |
+| Stem model                                  | Decided 2026-10-06             | Open-Unmix UMX-HQ, MIT weights, explicit download. Separation does not run. See [MODELS.md](MODELS.md).                                      |
+| Code-signing identities                     | First public binary            | Apple Developer ID and notarisation; Windows code signing.                                                                                   |
+| Repository hosting                          | Before CI can run              | CI is defined in Phase 1 but runs only once the repository is pushed.                                                                        |
 
 ## Risks
 
-| Risk                                                                                            | Mitigation                                                                                                  |
-| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| JUCE's message loop does not cooperate with Tauri's event loop                                  | Phase 1 gate on macOS; fallback is an out-of-process engine on desktop (ADR-003, ADR-005).                  |
-| JUCE audio inside Tauri's Android activity                                                      | Phase 8 spike; fallback is Oboe directly in the native engine.                                              |
-| Licence still undecided                                                                         | Packages are private and `UNLICENSED`; no binaries are published and no outside contributions are accepted. |
-| Name collision with Tracktion Waveform                                                          | Recorded as an open decision; resolve before public release.                                                |
-| Young dependencies: tauri-specta RC, shadcn's React Aria base (July 2026), TypeScript 6/7 split | Exact pins, regenerated-bindings check in CI, documented fallbacks (ADR-007, ADR-010, ADR-013).             |
-| JUCE 9 bundles zlib and FLAC as C code, so another copy in the same binary can clash            | Avoid other copies of those libraries; check exported symbols in Linux CI.                                  |
-| macOS deployment target or MSVC runtime differ between CMake, Cargo and Tauri                   | Set each once and keep the three in step (ADR-004).                                                         |
-| WebKitGTK performance and codec gaps on Linux                                                   | Measured in the Phase 4 benchmark before the import path is fixed.                                          |
-| CI cannot be verified before the repository is pushed                                           | Workflows are checked with `actionlint`; first push verifies them.                                          |
+| Risk                                                                                            | Mitigation                                                                                                      |
+| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| JUCE's message loop does not cooperate with Tauri's event loop                                  | Phase 1 gate on macOS; fallback is an out-of-process engine on desktop (ADR-003, ADR-005).                      |
+| JUCE audio inside Tauri's Android activity                                                      | Phase 8 spike; fallback is Oboe directly in the native engine.                                                  |
+| AGPL conflicts with the iOS and Mac App Store                                                   | Store binaries are not built. Direct desktop builds stay possible. A commercial JUCE licence was not purchased. |
+| Name collision with Tracktion Waveform                                                          | Recorded as an open decision; resolve before public release.                                                    |
+| Young dependencies: tauri-specta RC, shadcn's React Aria base (July 2026), TypeScript 6/7 split | Exact pins, regenerated-bindings check in CI, documented fallbacks (ADR-007, ADR-010, ADR-013).                 |
+| JUCE 9 bundles zlib and FLAC as C code, so another copy in the same binary can clash            | Avoid other copies of those libraries; check exported symbols in Linux CI.                                      |
+| macOS deployment target or MSVC runtime differ between CMake, Cargo and Tauri                   | Set each once and keep the three in step (ADR-004).                                                             |
+| WebKitGTK performance and codec gaps on Linux                                                   | Measured in the Phase 4 benchmark before the import path is fixed.                                              |
+| CI cannot be verified before the repository is pushed                                           | Workflows are checked with `actionlint`; first push verifies them.                                              |

@@ -139,7 +139,8 @@ void render_offline(engine::Session& session, rust::Slice<float> interleaved, do
 }
 
 rust::String load_deck_file(engine::Session& session, std::uint8_t deck, rust::Str path) {
-    return rust::String(session.loadFile(static_cast<int>(deck), std::string(path.data(), path.size())));
+    return rust::String(
+        session.loadFile(static_cast<int>(deck), std::string(path.data(), path.size())));
 }
 
 rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck) {
