@@ -45,6 +45,11 @@ public:
 
     [[nodiscard]] EngineSnapshot snapshot() const;
 
+    /// Decodes a file onto a deck. Empty string on success. Peaks are raw
+    /// interleaved min/max floats from that decode.
+    [[nodiscard]] std::string loadFile(int deck, const std::string& path);
+    [[nodiscard]] std::vector<float> peaks(int deck) const;
+
     /// Mixes without a device. `sampleRate` and `frames` may differ from the
     /// open device; a change of rate rebuilds the mixer the way a device would.
     void processOffline(float* interleavedStereo, int frames, double sampleRate);

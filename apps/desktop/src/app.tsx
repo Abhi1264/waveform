@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { getCurrentWindow } from "@tauri-apps/api/window"
 import { AppearanceSettings } from "@waveform/ui/components/appearance-settings"
 
@@ -42,6 +43,18 @@ commandRegistry.register({
 
 export function App() {
   useWindowTheme(setWindowTheme)
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== " " || event.repeat) return
+      event.preventDefault()
+      commandRegistry.run(event.shiftKey ? "deck.b.play" : "deck.a.play")
+    }
+    window.addEventListener("keydown", onKey)
+    return () => {
+      window.removeEventListener("keydown", onKey)
+    }
+  }, [])
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-8 px-8 py-10">

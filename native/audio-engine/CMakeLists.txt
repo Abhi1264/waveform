@@ -2,7 +2,8 @@ find_package(Threads REQUIRED)
 include(CheckCXXCompilerFlag)
 
 # The engine's public headers use only standard C++ types; JUCE stays private.
-add_library(waveform_engine STATIC src/build_info.cpp src/runtime.cpp src/mixer.cpp src/session.cpp)
+add_library(waveform_engine STATIC
+    src/build_info.cpp src/runtime.cpp src/mixer.cpp src/session.cpp src/prepared_audio.cpp)
 add_library(waveform::engine ALIAS waveform_engine)
 target_include_directories(waveform_engine PUBLIC include)
 target_link_libraries(waveform_engine PUBLIC waveform_dsp PRIVATE waveform_juce Threads::Threads)
@@ -25,7 +26,8 @@ install(TARGETS waveform_engine ARCHIVE DESTINATION lib)
 
 if(WAVEFORM_BUILD_TESTS)
     add_executable(waveform_engine_tests
-        tests/build_info_tests.cpp tests/runtime_tests.cpp tests/mixer_tests.cpp tests/session_tests.cpp)
+        tests/build_info_tests.cpp tests/runtime_tests.cpp tests/mixer_tests.cpp
+        tests/session_tests.cpp tests/file_tests.cpp)
     # The runtime tests include JUCE to pump messages, standing in for the
     # host event loop that the desktop app provides.
     target_link_libraries(waveform_engine_tests

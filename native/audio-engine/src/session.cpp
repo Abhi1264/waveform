@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_events/juce_events.h>
 
@@ -126,6 +127,7 @@ struct Session::Impl : private juce::AudioIODeviceCallback {
     void audioDeviceIOCallbackWithContext(const float* const* /*input*/, int /*numInputChannels*/,
                                           float* const* output, int numOutputChannels, int numSamples,
                                           const juce::AudioIODeviceCallbackContext& /*context*/) override {
+        juce::ScopedNoDenormals flushDenormals;
         callbackCount.fetch_add(1, std::memory_order_relaxed);
         // A fixed array: the callback must not allocate. Anything that does not
         // fit is counted and discarded.
@@ -315,6 +317,12 @@ void Session::command(std::uint8_t kind, int deck, float value, float value2, st
 }
 
 EngineSnapshot Session::snapshot() const { return impl_->snapshot(); }
+
+std::string Session::loadFile(int deck, const std::string& path) {
+    return impl_->mixer.loadFile(deck, path);
+}
+
+std::vector<float> Session::peaks(int deck) const { return impl_->mixer.peaks(deck); }
 
 void Session::processOffline(float* interleavedStereo, int frames, double sampleRate) {
     impl_->processOffline(interleavedStereo, frames, sampleRate);

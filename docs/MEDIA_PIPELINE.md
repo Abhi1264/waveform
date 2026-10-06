@@ -8,9 +8,12 @@ Import turns a folder of files into library rows without running on the audio th
   failure when the file cannot be read. See [DATABASE.md](DATABASE.md) for the hash measurement.
 - `JobQueue` imports on a background thread. Submitting a job returns immediately. The latest
   submission is processed next, so a track the DJ just asked for jumps the queue.
-- Playback of music files is not wired yet. Decks still play tones (Phase 3) until Phase 5
-  attaches prepared audio. Native decode remains the authority (ADR-008). MediaBunny, when
-  added for tags and artwork, stays in a webview worker and off the audio callback.
+- A wav file is decoded on a loader thread into fixed chunks. The audio callback only reads
+  a chunk that has been published. Peaks (min/max pairs) are computed during that load.
+  A Catch2 test writes a one-second sine, loads it, and checks that playback and peaks appear.
+- Tags are read with `lofty` 0.25.4 when the file has them. The filename is the title when
+  it does not. That native read is the import path. A MediaBunny worker for artwork and
+  export is still to be added in the webview, and it will stay off the audio callback.
 
 ## What a later import step stores
 

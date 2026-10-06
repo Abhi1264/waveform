@@ -104,7 +104,8 @@ work continues.
   tests pass; `docs/MEDIA_PIPELINE.md` and `docs/DATABASE.md` written.
 - **Result (2026-10-06):** the library crate hashes with BLAKE3, migrates SQLite, searches
   with FTS5, and imports on a background queue. 100,000 small files hashed in 7.86 s.
-  File decode and a MediaBunny worker are not connected to the decks yet.
+  A wav file now decodes on a loader thread into chunks, with peaks, and `lofty` reads tags.
+  A MediaBunny worker is not in the webview yet.
 
 ### Phase 5: First real DJ workflow (first major milestone)
 
@@ -115,7 +116,9 @@ work continues.
 - **Acceptance:** a two-track mix can be performed end to end with keyboard and mouse;
   engine tests cover sync, looping and EQ.
 - **Result (2026-10-06):** sync, looping, EQ and hot cues pass in the engine tests. The
-  desktop Audio panel plays the two tone decks. A file-backed waveform is not on screen yet.
+  desktop Audio panel plays the two tone decks, draws a canvas waveform, and follows
+  the selected deck with Zustand. Space plays the selected shortcut through the command
+  registry. A file is not yet loaded from the panel.
 
 ### Phase 6: Library
 

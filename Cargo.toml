@@ -17,6 +17,7 @@ waveform-engine = { path = "crates/waveform-engine" }
 waveform-library = { path = "crates/waveform-library" }
 
 blake3 = "=1.8.2"
+lofty = "=0.25.4"
 rusqlite = { version = "=0.40.2", features = ["bundled"] }
 sha2 = "=0.10.8"
 rusqlite_migration = "=2.6.0"

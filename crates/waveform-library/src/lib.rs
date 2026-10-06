@@ -3,6 +3,7 @@
 
 mod hash;
 mod jobs;
+mod tags;
 pub mod midi;
 pub mod models;
 mod schema;
@@ -71,19 +72,27 @@ impl Library {
             Ok(hash) => (hash, None),
             Err(error) => ("unreadable".to_owned(), Some(error.to_string())),
         };
-        let title = path
-            .file_stem()
-            .map(|stem| stem.to_string_lossy().into_owned())
-            .unwrap_or_else(|| path_text.clone());
+        let (title, artist) = tags::read_tags(path).unwrap_or_else(|| {
+            (
+                path.file_stem()
+                    .map(|stem| stem.to_string_lossy().into_owned())
+                    .unwrap_or_else(|| path_text.clone()),
+                String::new(),
+            )
+        });
         self.connection.execute(
             "INSERT INTO tracks (content_hash, path, title, artist, failure)
-             VALUES (?1, ?2, ?3, '', ?4)
-             ON CONFLICT(content_hash) DO UPDATE SET path = excluded.path, failure = excluded.failure",
-            params![hash, path_text, title, failure],
+             VALUES (?1, ?2, ?3, ?4, ?5)
+             ON CONFLICT(content_hash) DO UPDATE SET
+               path = excluded.path,
+               title = excluded.title,
+               artist = excluded.artist,
+               failure = excluded.failure",
+            params![hash, path_text, title, artist, failure],
         )?;
         self.connection.execute(
-            "INSERT INTO track_search (title, artist, path, content_hash) VALUES (?1, '', ?2, ?3)",
-            params![title, path_text, hash],
+            "INSERT INTO track_search (title, artist, path, content_hash) VALUES (?1, ?2, ?3, ?4)",
+            params![title, artist, path_text, hash],
         )?;
         self.track_by_hash(&hash)?
             .ok_or_else(|| LibraryError::Missing(hash))

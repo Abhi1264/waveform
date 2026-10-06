@@ -5,6 +5,8 @@ import { Fader } from "@waveform/ui/components/fader"
 import { LevelMeter } from "@waveform/ui/components/level-meter"
 
 import type { AudioSnapshot, OutputDevice } from "@/bindings"
+import { useDeckSelection } from "@/decks/selection"
+import { WaveformView } from "@/waveforms/waveform-view"
 
 interface AudioApi {
   listOutputDevices: () => Promise<OutputDevice[]>
@@ -40,6 +42,11 @@ const quiet: AudioSnapshot = {
   deviceName: "",
 }
 
+const tonePeaks = Array.from({ length: 160 }, (_, index) => {
+  const max = 0.25 + 0.6 * Math.abs(Math.sin(index / 7))
+  return [-max, max]
+}).flat()
+
 function formatRate(snapshot: AudioSnapshot): string {
   if (!snapshot.deviceOpen) return "Closed"
   const rate = snapshot.sampleRate.toLocaleString("en")
@@ -50,6 +57,8 @@ function AudioPanel({ api }: { api: AudioApi }) {
   const [devices, setDevices] = useState<OutputDevice[]>([])
   const [snapshot, setSnapshot] = useState<AudioSnapshot>(quiet)
   const [error, setError] = useState("")
+  const deck = useDeckSelection((state) => state.deck)
+  const selectDeck = useDeckSelection((state) => state.select)
 
   useEffect(() => {
     let stop: () => void = () => undefined
@@ -92,6 +101,16 @@ function AudioPanel({ api }: { api: AudioApi }) {
         {formatRate(snapshot)}
         {snapshot.xrunCount > 0 ? ` · ${snapshot.xrunCount} xruns` : ""}
       </p>
+      <WaveformView
+        peaks={tonePeaks}
+        positionSeconds={
+          (deck === 0
+            ? snapshot.deckAPositionSeconds
+            : snapshot.deckBPositionSeconds) ?? 0
+        }
+        durationSeconds={8}
+        color={deck === 0 ? "#0574c7" : "#af4387"}
+      />
       {error ? (
         <p role="alert" className="text-destructive">
           {error}
@@ -141,6 +160,7 @@ function AudioPanel({ api }: { api: AudioApi }) {
               <div className="flex gap-2">
                 <Button
                   onPress={() => {
+                    selectDeck(deck)
                     run(() => api.playDeck(deck))
                   }}
                 >

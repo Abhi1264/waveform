@@ -2,7 +2,10 @@
 
 #include <waveform/dsp/tone.hpp>
 #include <waveform/engine/command.hpp>
+#include <waveform/engine/prepared_audio.hpp>
 #include <waveform/engine/snapshot.hpp>
+
+#include <string>
 
 #include <vector>
 
@@ -18,6 +21,10 @@ public:
 
     void prepare(double sampleRate, int maxFrames);
 
+    /// Decodes `path` on a loader thread into deck `deck`. Empty string on success.
+    [[nodiscard]] std::string loadFile(int deck, const std::string& path);
+    [[nodiscard]] std::vector<float> peaks(int deck) const;
+
     /// Applies every queued command, then mixes `frames` of stereo output into
     /// `interleavedStereo`. `frames` must be no greater than the prepared maximum.
     void process(const Command* commands, int commandCount, float* interleavedStereo, int frames,
@@ -29,6 +36,8 @@ public:
 private:
     struct Deck {
         dsp::ToneSource source;
+        PreparedAudio file;
+        bool useFile = false;
         bool playing = false;
         bool loopEnabled = false;
         double positionSamples = 0.0;

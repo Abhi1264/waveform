@@ -54,6 +54,7 @@ void Mixer::apply(const Command& command) noexcept {
         deck.playing = false;
         deck.positionSamples = 0.0;
         deck.source.reset();
+        deck.file.seek(0.0);
         break;
     case CommandKind::SetGainDb:
         deck.gainDb = std::clamp(command.value, -100.0f, 12.0f);
@@ -85,6 +86,7 @@ void Mixer::apply(const Command& command) noexcept {
     case CommandKind::JumpHotCue:
         if (command.slot < 8) {
             deck.positionSamples = static_cast<double>(deck.hotCues[command.slot]) * sampleRate_;
+            deck.file.seek(deck.positionSamples);
         }
         break;
     case CommandKind::Sync:
@@ -106,10 +108,16 @@ void Mixer::renderDeck(Deck& deck, float* interleavedStereo, int frames, float& 
         return;
     }
 
-    const float baseFrequency = deck.source.frequency();
-    deck.source.setFrequency(baseFrequency * deck.pitch);
-    deck.source.render(interleavedStereo, frames);
-    deck.source.setFrequency(baseFrequency);
+    if (deck.useFile) {
+        deck.file.render(interleavedStereo, frames, deck.pitch);
+        deck.positionSamples = deck.file.positionSamples();
+    } else {
+        const float baseFrequency = deck.source.frequency();
+        deck.source.setFrequency(baseFrequency * deck.pitch);
+        deck.source.render(interleavedStereo, frames);
+        deck.source.setFrequency(baseFrequency);
+        deck.positionSamples += static_cast<double>(frames) * static_cast<double>(deck.pitch);
+    }
     const float low = dsp::decibelsToLinear(deck.eqDb[0]);
     const float high = dsp::decibelsToLinear(deck.eqDb[2]);
     const float gain = dsp::decibelsToLinear(deck.gainDb + deck.eqDb[1]);
@@ -125,11 +133,13 @@ void Mixer::renderDeck(Deck& deck, float* interleavedStereo, int frames, float& 
             peak = std::max(peak, std::abs(interleavedStereo[offset]));
         }
     }
-    deck.positionSamples += static_cast<double>(frames) * static_cast<double>(deck.pitch);
     if (deck.loopEnabled) {
         const double length = deck.loopEnd - deck.loopStart;
         while (deck.positionSamples >= deck.loopEnd && length > 0.0) {
             deck.positionSamples -= length;
+        }
+        if (deck.useFile) {
+            deck.file.seek(deck.positionSamples);
         }
     }
     levelDb = peakToDecibels(peak);
@@ -184,6 +194,25 @@ void Mixer::process(const Command* commands, int commandCount, float* interleave
     }
     snapshot.levelDb[0] = levels[0];
     snapshot.levelDb[1] = levels[1];
+}
+
+std::string Mixer::loadFile(int deck, const std::string& path) {
+    if (deck < 0 || deck > 3) {
+        return "Waveform has four decks, numbered 0 to 3.";
+    }
+    const auto error = decks_[deck].file.load(path);
+    decks_[deck].useFile = error.empty();
+    if (error.empty()) {
+        decks_[deck].positionSamples = 0.0;
+    }
+    return error;
+}
+
+std::vector<float> Mixer::peaks(int deck) const {
+    if (deck < 0 || deck > 3) {
+        return {};
+    }
+    return decks_[deck].file.peaks();
 }
 
 } // namespace waveform::engine
