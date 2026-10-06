@@ -1,6 +1,10 @@
 [workspace]
 resolver = "3"
-members = ["apps/desktop/src-tauri", "crates/waveform-engine"]
+members = [
+    "apps/desktop/src-tauri",
+    "crates/waveform-engine",
+    "crates/waveform-library",
+]
 
 [workspace.package]
 version = "0.1.0"
@@ -10,6 +14,13 @@ publish = false
 
 [workspace.dependencies]
 waveform-engine = { path = "crates/waveform-engine" }
+waveform-library = { path = "crates/waveform-library" }
+
+blake3 = "=1.8.2"
+rusqlite = { version = "=0.40.2", features = ["bundled"] }
+sha2 = "=0.10.8"
+rusqlite_migration = "=2.6.0"
+xxhash-rust = { version = "=0.8.15", features = ["xxh3"] }
 
 cmake = "=0.1.58"
 cxx = "=1.0.202"
@@ -21,7 +32,7 @@ specta-typescript = "=0.0.12"
 tauri = "2.12.1"
 tauri-build = "2.7.1"
 tauri-specta = "=2.0.0-rc.25"
-thiserror = "2.0.21"
+thiserror = "=2.0.21"
 
 [workspace.lints.rust]
 unsafe_code = "deny"

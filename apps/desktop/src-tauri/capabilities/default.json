@@ -1,7 +1,11 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "The main window may read engine information and match its title bar to the chosen theme.",
+  "description": "The main window may read engine information, run the tone decks, and match its title bar to the chosen theme.",
   "windows": ["main"],
-  "permissions": ["allow-engine-info", "core:window:allow-set-theme"]
+  "permissions": [
+    "allow-engine-info",
+    "allow-audio",
+    "core:window:allow-set-theme"
+  ]
 }

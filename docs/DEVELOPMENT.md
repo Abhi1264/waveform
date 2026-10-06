@@ -44,22 +44,23 @@ SHA-256 hashes) and compiles JUCE, which takes a few minutes. Later builds reuse
 
 ## Everyday commands
 
-| Task                                   | Command                                                                                                                                                               |
-| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Run the desktop app                    | `pnpm --filter @waveform/desktop tauri dev`                                                                                                                           |
-| Run the website                        | `pnpm --filter @waveform/web dev`                                                                                                                                     |
-| Format all TypeScript, CSS, JSON, YAML | `pnpm format` (check only: `pnpm format:check`)                                                                                                                       |
-| Lint, including package boundaries     | `pnpm lint`                                                                                                                                                           |
-| Type-check                             | `pnpm typecheck`                                                                                                                                                      |
-| Unit and component tests               | `pnpm test` (watch mode: `pnpm test:watch`)                                                                                                                           |
-| Build the website and desktop frontend | `pnpm build`                                                                                                                                                          |
-| Browser tests (Chromium and WebKit)    | `pnpm test:e2e` (first time: `pnpm --filter @waveform/web exec playwright install chromium webkit`)  |
-| Format C++                             | `scripts/check-native-format.sh --fix` (check only: no flag)                                                                                                          |
-| Build and test the C++ engine          | `cmake --workflow --preset dev` (or `ci`: optimised, warnings as errors)                                                                                              |
-| Format, lint and test Rust             | `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace`                                                                  |
-| Build the desktop app                  | `pnpm --filter @waveform/desktop tauri build --debug`                                                                                                                 |
-| Check the engine inside the app        | `target/debug/waveform-desktop --self-test`                                                                                                                           |
-| Prove a fresh clone works              | `scripts/verify-clean-checkout.sh`                                                                                                                                    |
+| Task                                            | Command                                                                                              |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Run the desktop app                             | `pnpm --filter @waveform/desktop tauri dev`                                                          |
+| Run the website                                 | `pnpm --filter @waveform/web dev`                                                                    |
+| Format all TypeScript, CSS, JSON, YAML          | `pnpm format` (check only: `pnpm format:check`)                                                      |
+| Lint, including package boundaries              | `pnpm lint`                                                                                          |
+| Type-check                                      | `pnpm typecheck`                                                                                     |
+| Unit and component tests                        | `pnpm test` (watch mode: `pnpm test:watch`)                                                          |
+| Build the website and desktop frontend          | `pnpm build`                                                                                         |
+| Browser tests (Chromium and WebKit)             | `pnpm test:e2e` (first time: `pnpm --filter @waveform/web exec playwright install chromium webkit`)  |
+| Format C++                                      | `scripts/check-native-format.sh --fix` (check only: no flag)                                         |
+| Build and test the C++ engine                   | `cmake --workflow --preset dev` (or `ci`: optimised, warnings as errors)                             |
+| Format, lint and test Rust                      | `cargo fmt --all`, `cargo clippy --workspace --all-targets -- -D warnings`, `cargo test --workspace` |
+| Build the desktop app                           | `pnpm --filter @waveform/desktop tauri build --debug`                                                |
+| Check the engine inside the app                 | `target/debug/waveform-desktop --self-test`                                                          |
+| Compile the audio thread with RealtimeSanitizer | `scripts/check-realtime-sanitizer.sh` (needs LLVM clang; Apple clang does not include it)            |
+| Prove a fresh clone works                       | `scripts/verify-clean-checkout.sh`                                                                   |
 
 `pnpm test:e2e` runs the website checks and captures the desktop About and appearance
 screenshots.

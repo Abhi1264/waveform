@@ -130,6 +130,11 @@ jobs:
         # PowerShell, so Git Bash's link.exe cannot shadow the MSVC linker.
         shell: pwsh
         run: cmake --workflow --preset ci
+      - name: Realtime sanitizer
+        if: runner.os == 'macOS'
+        run: |
+          brew install llvm
+          WAVEFORM_CLANG="$(brew --prefix llvm)/bin/clang++" scripts/check-realtime-sanitizer.sh
 
   desktop:
     name: Desktop app (${{ matrix.os }})

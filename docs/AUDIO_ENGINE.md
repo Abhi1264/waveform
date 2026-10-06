@@ -12,14 +12,14 @@ the engine can be called safely from Rust.
 
 | Part                                      | Contents                                                                                                             |
 | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `native/dsp` (`waveform_dsp`)             | Crossfader gain curves: linear, constant power, and cut. Pure C++20, no JUCE, real-time safe.                        |
-| `native/audio-engine` (`waveform_engine`) | Build information, and `Runtime`, which starts and stops JUCE's message system.                                      |
+| `native/dsp` (`waveform_dsp`)             | Crossfader curves, gain conversion, and a sine or noise `AudioSource`. Real-time safe.                               |
+| `native/audio-engine` (`waveform_engine`) | Build information, `Runtime`, and `Session`: two tone decks, mixer, devices, command queue, snapshot.                |
 | `native/juce` (`waveform_juce`)           | The JUCE 9.0.3 modules, compiled once into a static library.                                                         |
 | `crates/waveform-engine`                  | The Rust interface: `build_info()`, `operating_system_name()`, `Runtime::start()`, `Runtime::ping_message_thread()`. |
 | `apps/desktop/src-tauri`                  | Starts the runtime when the app starts, and serves `engine_info` to the About view.                                  |
 
-Not built yet, and arriving in Phase 3: device discovery and selection, the audio callback,
-decks, transport, mixer, and the lock-free command and snapshot paths.
+Phase 3 adds device discovery, two tone decks, transport, the mixer, and the lock-free
+command and snapshot paths. Music files are not decoded yet (ADR-021).
 
 ## The JUCE runtime
 

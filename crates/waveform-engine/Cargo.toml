@@ -20,5 +20,9 @@ cxx-build = { workspace = true }
 name = "runtime"
 harness = false
 
+[[test]]
+name = "session"
+harness = false
+
 [lints]
 workspace = true

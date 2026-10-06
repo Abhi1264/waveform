@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-cue-deck"
+description = "Enables the cue_deck command without any pre-configured scope."
+commands.allow = ["cue_deck"]
+
+[[permission]]
+identifier = "deny-cue-deck"
+description = "Denies the cue_deck command without any pre-configured scope."
+commands.deny = ["cue_deck"]

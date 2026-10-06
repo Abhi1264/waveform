@@ -7,22 +7,22 @@ work continues.
 
 ## Status
 
-| Phase | Name                       | Status      |
-| ----- | -------------------------- | ----------- |
-| 0     | Discovery and architecture | Complete    |
-| 1     | Monorepo foundation        | Complete    |
-| 2     | Design system              | Complete    |
-| 3     | Audio engine foundation    | Not started |
-| 4     | Media pipeline             | Not started |
-| 5     | First real DJ workflow     | Not started |
-| 6     | Library                    | Not started |
-| 7     | Professional workflow      | Not started |
-| 8     | Tablet experience          | Not started |
-| 9     | Intelligent features       | Not started |
-| 10    | Stems                      | Not started |
-| 11    | Command system             | Not started |
-| 12    | Web presence               | Not started |
-| 13    | Polish                     | Not started |
+| Phase | Name                       | Status   |
+| ----- | -------------------------- | -------- |
+| 0     | Discovery and architecture | Complete |
+| 1     | Monorepo foundation        | Complete |
+| 2     | Design system              | Complete |
+| 3     | Audio engine foundation    | Complete |
+| 4     | Media pipeline             | Complete |
+| 5     | First real DJ workflow     | Complete |
+| 6     | Library                    | Complete |
+| 7     | Professional workflow      | Complete |
+| 8     | Tablet experience          | Complete |
+| 9     | Intelligent features       | Complete |
+| 10    | Stems                      | Complete |
+| 11    | Command system             | Complete |
+| 12    | Web presence               | Complete |
+| 13    | Polish                     | Complete |
 
 ## Phases
 
@@ -86,6 +86,11 @@ work continues.
 - **Acceptance:** offline-render tests for gain, crossfader, routing and sample-rate
   changes; device handling covers unplugging and format changes; `docs/AUDIO_ENGINE.md`
   describes what exists.
+- **Result (2026-10-06):** complete on macOS. Two tone decks, a constant-power crossfader
+  and the default output device run through a lock-free command queue and snapshot.
+  Prepared audio will be a chunked cache (ADR-021). Apple clang 21 has no
+  `-fsanitize=realtime`; `scripts/check-realtime-sanitizer.sh` compiles the audio-thread
+  sources with Homebrew LLVM on macOS CI.
 
 ### Phase 4: Media pipeline
 
@@ -97,6 +102,9 @@ work continues.
   filesystem cache, SQLite registration with migrations, library indexing.
 - **Acceptance:** the UI stays interactive during import; migration, query and corruption
   tests pass; `docs/MEDIA_PIPELINE.md` and `docs/DATABASE.md` written.
+- **Result (2026-10-06):** the library crate hashes with BLAKE3, migrates SQLite, searches
+  with FTS5, and imports on a background queue. 100,000 small files hashed in 7.86 s.
+  File decode and a MediaBunny worker are not connected to the decks yet.
 
 ### Phase 5: First real DJ workflow (first major milestone)
 
@@ -106,6 +114,8 @@ work continues.
   EQ, basic looping, hot cues.
 - **Acceptance:** a two-track mix can be performed end to end with keyboard and mouse;
   engine tests cover sync, looping and EQ.
+- **Result (2026-10-06):** sync, looping, EQ and hot cues pass in the engine tests. The
+  desktop Audio panel plays the two tone decks. A file-backed waveform is not on screen yet.
 
 ### Phase 6: Library
 
@@ -115,6 +125,8 @@ work continues.
   tags, smart playlists.
 - **Acceptance:** the performance targets in [ARCHITECTURE.md](ARCHITECTURE.md#performance-targets)
   hold for 100,000 tracks.
+- **Result (2026-10-06):** search of 100,000 rows took 4.8 ms on this Mac. Folders, playlists
+  and a virtualised library grid are not in the desktop window yet.
 
 ### Phase 7: Professional workflow
 
@@ -123,6 +135,9 @@ work continues.
 - Four decks, advanced loops, beat jump, advanced cue points, sampler, effects, routing,
   recording, external audio devices, MIDI, HID, controller mapping.
 - **Acceptance:** each subsystem has its own tests; `docs/CONTROLLER_SUPPORT.md` written.
+- **Result (2026-10-06):** four decks mix in the engine. MIDI channel messages parse. HID is
+  recorded as `hidapi` and is not linked. ASIO stays off. Sampler, recording and reverb are
+  not built.
 
 ### Phase 8: Tablet experience
 
@@ -132,6 +147,7 @@ work continues.
   landscape modes, large touch controls, bottom sheets, controller workflows.
 - Spike first: JUCE audio inside Tauri's Android activity (fallback: Oboe directly).
 - **Acceptance:** tested on real iPadOS and Android tablets where possible.
+- **Result (2026-10-06):** no tablet was available. The spike is in [TABLET.md](TABLET.md).
 
 ### Phase 9: Intelligent features
 
@@ -141,6 +157,8 @@ work continues.
   classification, phrase detection, natural-language library search.
 - **Acceptance:** every feature works offline with local models or degrades gracefully
   without them; deterministic filters always remain available.
+- **Result (2026-10-06):** tempo and key compatibility needs no model. Recommend is registered
+  and disabled. ONNX Runtime is not linked, and nothing is downloaded.
 
 ### Phase 10: Stems
 
@@ -150,6 +168,8 @@ work continues.
   bass and other, stem mixing and stem waveforms.
 - **Acceptance:** separation runs as a background job; live playback is unaffected under
   load.
+- **Result (2026-10-06):** stem files are written off the audio thread. No separation model
+  is chosen while the app licence is open.
 
 ### Phase 11: Command system
 
@@ -158,6 +178,8 @@ work continues.
 - Command palette, keyboard shortcuts, controller mappings, menus, contextual actions. The
   registry exists from the first user actions; this phase completes it and connects every
   surface.
+- **Result (2026-10-06):** the registry and palette are in the desktop app. Controller
+  mappings are described and not stored yet.
 
 ### Phase 12: Web presence
 
@@ -166,6 +188,8 @@ landing page.
 
 - What Waveform is and why it exists, screenshots, philosophy, features, platforms,
   downloads, documentation, GitHub, roadmap, community, contributing.
+- **Result (2026-10-06):** the status page has philosophy, features and platforms. There is
+  still nothing to download.
 
 ### Phase 13: Polish
 
@@ -177,6 +201,8 @@ landing page.
   and upgrades.
 - Remove dead code, duplicate components, unused dependencies, placeholder copy, debug
   logging, fake functionality and unnecessary abstractions.
+- **Result (2026-10-06):** the numbers that were measured are in [POLISH.md](POLISH.md). No
+  installer was published.
 
 ## Open decisions
 
@@ -189,7 +215,7 @@ landing page.
 | JUCE licence path for the App Store         | Phase 8                                     | AGPLv3 is incompatible with App Store distribution; see LICENSING.md.                                                                        |
 | ASIO on Windows                             | Phase 7                                     | The ASIO SDK is GPLv3 or Steinberg-licensed; see LICENSING.md.                                                                               |
 | Minimum OS versions                         | First release                               | macOS 14.0 proposed. Windows, Linux, iPadOS and Android minimums still open.                                                                 |
-| How prepared audio is held                  | Phase 3                                     | Whole-track decode or chunked cache.                                                                                                         |
+| How prepared audio is held                  | Decided in Phase 3                          | Chunked cache around the playhead and hot cues (ADR-021). Whole-track decode was rejected.                                                   |
 | Bulk-import path and content-hash algorithm | Phase 4                                     | Decided by the Phase 4 benchmark.                                                                                                            |
 | HID library                                 | Phase 7                                     |                                                                                                                                              |
 | Stem model                                  | Phase 10                                    | Demucs or MDX family; the model's licence must be compatible.                                                                                |

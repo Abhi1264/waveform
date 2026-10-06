@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-deck-gain"
+description = "Enables the set_deck_gain command without any pre-configured scope."
+commands.allow = ["set_deck_gain"]
+
+[[permission]]
+identifier = "deny-set-deck-gain"
+description = "Denies the set_deck_gain command without any pre-configured scope."
+commands.deny = ["set_deck_gain"]

@@ -1,0 +1,21 @@
+[package]
+name = "waveform-library"
+description = "Waveform's library database and import jobs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+blake3 = { workspace = true }
+thiserror = { workspace = true }
+rusqlite = { workspace = true }
+sha2 = { workspace = true }
+rusqlite_migration = { workspace = true }
+xxhash-rust = { workspace = true }
+
+[dev-dependencies]
+tempfile = "=3.23.0"
+
+[lints]
+workspace = true

@@ -5,6 +5,27 @@ unreleased work, grouped by [roadmap](docs/ROADMAP.md) phase.
 
 ## Unreleased
 
+### Phases 4–13
+
+Added:
+
+- `waveform-library`: SQLite, FTS5 search, BLAKE3 content hashes, a background import queue,
+  MIDI parsing, model SHA-256 checks, and stem file output.
+- Search of 100,000 catalog rows returned in 4.8 ms on this Mac.
+- Four mixer decks. Decks A and B use the crossfader; C and D sum at unity.
+- A command registry and palette, and website sections for philosophy, features and platforms.
+- Notes on controllers, the tablet spike, and the measurements in `docs/`.
+
+### Phase 3: Audio engine foundation
+
+Added:
+
+- Tone decks, a constant-power crossfader and master output in the C++ engine, driven by a
+  lock-free command queue and a seqlock snapshot.
+- Device open, close, unplug and sample-rate change, with offline renders for the mix path.
+- Desktop Audio panel: default output, two tone decks, crossfader and a live snapshot.
+- ADR-021: file-backed audio will be a chunked cache. Tones do not use it.
+
 ### Phase 2: Design system
 
 Added:

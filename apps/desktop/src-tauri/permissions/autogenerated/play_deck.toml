@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-play-deck"
+description = "Enables the play_deck command without any pre-configured scope."
+commands.allow = ["play_deck"]
+
+[[permission]]
+identifier = "deny-play-deck"
+description = "Denies the play_deck command without any pre-configured scope."
+commands.deny = ["play_deck"]

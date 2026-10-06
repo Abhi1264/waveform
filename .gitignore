@@ -5,10 +5,18 @@ node_modules/
 dist/
 out/
 build/
+cmake-build-*/
 target/
 .next/
 next-env.d.ts
 *.tsbuildinfo
+
+# Local CMake and clangd files. Shared presets stay tracked.
+CMakeUserPresets.json
+/compile_commands.json
+
+# rustfmt leaves these behind when a format is interrupted
+*.rs.bk
 
 # Tool caches
 .turbo/

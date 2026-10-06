@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-set-crossfader"
+description = "Enables the set_crossfader command without any pre-configured scope."
+commands.allow = ["set_crossfader"]
+
+[[permission]]
+identifier = "deny-set-crossfader"
+description = "Denies the set_crossfader command without any pre-configured scope."
+commands.deny = ["set_crossfader"]

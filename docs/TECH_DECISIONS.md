@@ -428,3 +428,19 @@ listed in `docs/PRIVACY.md` (Phase 1).
 **Decision.** No LICENSE file yet, and every package is marked `private` and `UNLICENSED`.
 The options and their consequences are analysed in [LICENSING.md](LICENSING.md). A decision
 is required before the first public binary release or the first outside contribution.
+
+### ADR-021: Prepared audio is a chunked cache
+
+**Status:** Accepted (Phase 3, 2026-10-06)
+
+**Context.** Decks must not decode from disk on the audio thread. A whole track at 48 kHz
+stereo float is about 230 MB for ten minutes, and four decks plus stems would keep several
+copies resident.
+
+**Decision.** File-backed audio is a chunked cache around the playhead and the hot cues.
+The deck holds an `AudioSource`. Phase 3's tones implement that interface in memory, because
+they are a few words of phase, not a file. The cache itself arrives with file playback.
+Whole-track decode is rejected.
+
+**Consequences.** Loader threads fill chunks ahead of the playhead. The audio thread only
+reads a chunk that is already prepared, and retires old chunks on the control thread.

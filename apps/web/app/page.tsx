@@ -4,15 +4,15 @@ import Link from "next/link"
 const progress = [
   {
     label: "Done",
-    text: "Phases 0–2: the architecture, the monorepo and native engine skeleton, and the design system.",
+    text: "Phases 0–5: the architecture, the engine, the design system, and a two-deck mix.",
   },
   {
     label: "Now",
-    text: "Phase 3, the audio engine foundation: audio devices, playback, and the mixer.",
+    text: "The library, controllers, and the tablet layouts.",
   },
   {
     label: "Next",
-    text: "Phase 4, the media pipeline: import, analysis, and the library database.",
+    text: "Optional local models and stem separation, still with no account and no telemetry.",
   },
 ] as const
 
@@ -56,6 +56,47 @@ export default function Page() {
           <p className="text-pretty text-muted-foreground">
             The first version you can mix with is Phase 5: two decks, cue, sync,
             EQ, and looping.
+          </p>
+        </section>
+
+        <section
+          aria-labelledby="philosophy-heading"
+          className="flex flex-col gap-4"
+        >
+          <h2 id="philosophy-heading" className="text-lg font-medium">
+            Philosophy
+          </h2>
+          <p className="text-pretty text-muted-foreground">
+            The screen is the second instrument. It stays readable in the dark,
+            works offline, and never asks for an account.
+          </p>
+        </section>
+
+        <section
+          aria-labelledby="features-heading"
+          className="flex flex-col gap-4"
+        >
+          <h2 id="features-heading" className="text-lg font-medium">
+            Features
+          </h2>
+          <p className="text-pretty text-muted-foreground">
+            Two tone decks, a crossfader, EQ, loops, hot cues and sync are in
+            the engine. The library stores tracks in SQLite and searches them on
+            this machine.
+          </p>
+        </section>
+
+        <section
+          aria-labelledby="platforms-heading"
+          className="flex flex-col gap-4"
+        >
+          <h2 id="platforms-heading" className="text-lg font-medium">
+            Platforms
+          </h2>
+          <p className="text-pretty text-muted-foreground">
+            macOS is what we run by hand. Windows and Linux are in continuous
+            integration. iPad and Android wait on a licence that can ship in
+            those stores.
           </p>
         </section>
 

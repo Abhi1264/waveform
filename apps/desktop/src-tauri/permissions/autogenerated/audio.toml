@@ -1,0 +1,35 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-audio"
+description = "Enables the tone-deck audio commands."
+commands.allow = [
+    "list_output_devices",
+    "open_default_output",
+    "open_output",
+    "close_output",
+    "play_deck",
+    "pause_deck",
+    "cue_deck",
+    "set_deck_gain",
+    "set_crossfader",
+    "audio_snapshot",
+    "watch_audio",
+]
+
+[[permission]]
+identifier = "deny-audio"
+description = "Denies the tone-deck audio commands."
+commands.deny = [
+    "list_output_devices",
+    "open_default_output",
+    "open_output",
+    "close_output",
+    "play_deck",
+    "pause_deck",
+    "cue_deck",
+    "set_deck_gain",
+    "set_crossfader",
+    "audio_snapshot",
+    "watch_audio",
+]

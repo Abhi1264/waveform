@@ -10,6 +10,7 @@ fn main() {
     cxx_build::bridge("src/lib.rs")
         .file("bridge/engine_bridge.cc")
         .include(repo_root.join("native/audio-engine/include"))
+        .include(repo_root.join("native/dsp/include"))
         .std("c++20")
         .compile("waveform_engine_bridge");
 
@@ -21,6 +22,7 @@ fn main() {
         native.join("lib").display()
     );
     println!("cargo:rustc-link-lib=static=waveform_engine");
+    println!("cargo:rustc-link-lib=static=waveform_dsp");
     println!("cargo:rustc-link-lib=static=waveform_juce");
 
     link_system_libraries();
