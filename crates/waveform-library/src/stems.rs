@@ -2,6 +2,14 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 const STEMS: [&str; 4] = ["vocals", "drums", "bass", "other"];
+
+/// Shown wherever a filter-bank preview is offered. This is not a neural stem.
+pub const PREVIEW_NOTICE: &str = "Filter-bank preview. This is not a neural stem separation.";
+
+/// The sentence the preview writer and the desktop UI both show.
+pub fn stem_preview_notice() -> &'static str {
+    PREVIEW_NOTICE
+}
 const AUDIO_EXTENSIONS: [&str; 6] = ["wav", "aiff", "aif", "flac", "mp3", "ogg"];
 
 /// Writes one file per stem under `root/<hash>/`. The bytes are the caller's

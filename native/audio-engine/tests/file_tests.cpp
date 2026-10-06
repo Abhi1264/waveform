@@ -9,6 +9,7 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 
 #include <waveform/engine/mixer.hpp>
+#include <waveform/engine/session.hpp>
 
 using Catch::Matchers::WithinAbs;
 
@@ -147,4 +148,87 @@ TEST_CASE("Two loaded files can be beat-matched, crossfaded, looped and cued", "
     REQUIRE(heard);
     REQUIRE(snapshot.positionSeconds[0] < 0.5f);
     REQUIRE_THAT(static_cast<double>(snapshot.crossfader), WithinAbs(0.5, 0.001));
+}
+
+TEST_CASE("A filter-bank preview plays on stem slots while the mix stays loaded", "[stems]") {
+    const auto directory = juce::File::getSpecialLocation(juce::File::tempDirectory)
+                               .getChildFile("waveform-stem-preview");
+    directory.createDirectory();
+    const auto source = directory.getChildFile("mix.wav");
+    source.deleteFile();
+
+    juce::WavAudioFormat wav;
+    auto fileStream = std::make_unique<juce::FileOutputStream>(source);
+    REQUIRE(fileStream->openedOk());
+    std::unique_ptr<juce::OutputStream> stream = std::move(fileStream);
+    auto writer = wav.createWriterFor(stream, juce::AudioFormatWriter::Options{}
+                                                  .withSampleRate(48000.0)
+                                                  .withNumChannels(2)
+                                                  .withBitsPerSample(16));
+    REQUIRE(writer != nullptr);
+    const int frames = 24000;
+    juce::AudioBuffer<float> buffer(2, frames);
+    for (int index = 0; index < frames; ++index) {
+        const auto sample =
+            static_cast<float>(0.4 * std::sin(2.0 * 3.141592653589793 * 80.0 * index / 48000.0) +
+                               0.4 * std::sin(2.0 * 3.141592653589793 * 6000.0 * index / 48000.0));
+        buffer.setSample(0, index, sample);
+        buffer.setSample(1, index, sample);
+    }
+    REQUIRE(writer->writeFromAudioSampleBuffer(buffer, 0, frames));
+    writer.reset();
+
+    const auto preview = directory.getChildFile("preview");
+    REQUIRE(waveform::engine::writeStemPreview(source.getFullPathName().toStdString(),
+                                               preview.getFullPathName().toStdString())
+                .empty());
+    REQUIRE(preview.getChildFile("preview.txt").loadFileAsString().contains("not a neural"));
+
+    juce::MemoryBlock vocalsData;
+    juce::MemoryBlock drumsData;
+    REQUIRE(preview.getChildFile("vocals.wav").loadFileAsData(vocalsData));
+    REQUIRE(preview.getChildFile("drums.wav").loadFileAsData(drumsData));
+    REQUIRE(vocalsData != drumsData);
+    REQUIRE(preview.getChildFile("bass.wav").existsAsFile());
+    REQUIRE(preview.getChildFile("other.wav").existsAsFile());
+
+    Mixer mixer;
+    mixer.prepare(48000.0, 2048);
+    REQUIRE(mixer.loadFile(0, source.getFullPathName().toStdString()).empty());
+    const char* names[4] = {"vocals", "drums", "bass", "other"};
+    std::vector<Command> start = {Command{CommandKind::Play, 0, 0.0f}};
+    for (int slot = 0; slot < 4; ++slot) {
+        const auto path = preview.getChildFile(juce::String(names[slot]) + ".wav");
+        REQUIRE(mixer.loadStem(slot, path.getFullPathName().toStdString()).empty());
+        start.push_back(
+            Command{CommandKind::SetStemPlay, 0, 1.0f, 0.0f, static_cast<std::uint8_t>(slot)});
+    }
+
+    std::vector<float> output(2048 * 2);
+    bool heard = false;
+    for (int attempt = 0; attempt < 40; ++attempt) {
+        EngineSnapshot snapshot;
+        mixer.process(attempt == 0 ? start.data() : nullptr,
+                      attempt == 0 ? static_cast<int>(start.size()) : 0, output.data(), 2048,
+                      snapshot);
+        if (rms(output) > 0.02f) {
+            heard = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    REQUIRE(heard);
+
+    const Command pause{CommandKind::Pause, 0, 0.0f};
+    EngineSnapshot snapshot;
+    bool stemsRemain = false;
+    for (int attempt = 0; attempt < 5; ++attempt) {
+        mixer.process(&pause, 1, output.data(), 2048, snapshot);
+        if (rms(output) > 0.02f) {
+            stemsRemain = true;
+            break;
+        }
+    }
+    REQUIRE(stemsRemain);
+    REQUIRE(snapshot.playing[0] == 0);
 }

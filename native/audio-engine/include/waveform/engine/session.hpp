@@ -48,6 +48,8 @@ public:
     /// Decodes a file onto a deck. Empty string on success. Peaks are raw
     /// interleaved min/max floats from that decode.
     [[nodiscard]] std::string loadFile(int deck, const std::string& path);
+    /// Decodes `path` into a stem slot. Empty string on success.
+    [[nodiscard]] std::string loadStem(int slot, const std::string& path);
     [[nodiscard]] std::vector<float> peaks(int deck) const;
     [[nodiscard]] float bpm(int deck) const;
     [[nodiscard]] std::string key(int deck) const;
@@ -69,5 +71,10 @@ private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
+
+/// Writes vocals, drums, bass, and other wav files under `directory`.
+/// This is a filter-bank preview, not a neural separation, and it does not
+/// touch the mixer or the audio thread. Empty string on success.
+[[nodiscard]] std::string writeStemPreview(const std::string& source, const std::string& directory);
 
 } // namespace waveform::engine

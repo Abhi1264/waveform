@@ -27,11 +27,15 @@ function command(
 const liveAudio: AudioApi = {
   listOutputDevices: () => unwrap(commands.listOutputDevices()),
   openDefaultOutput: () => command(commands.openDefaultOutput()),
+  openOutput: (name) => command(commands.openOutput(name)),
   closeOutput: () => command(commands.closeOutput()),
   playDeck: (deck) => command(commands.playDeck(deck)),
   pauseDeck: (deck) => command(commands.pauseDeck(deck)),
   cueDeck: (deck) => command(commands.cueDeck(deck)),
   setCrossfader: (position) => command(commands.setCrossfader(position)),
+  setDeckGain: (deck, decibels) =>
+    command(commands.setDeckGain(deck, decibels)),
+  setInputGain: (gain) => command(commands.setInputGain(gain)),
   loadDeckFile: async (deck, path) => {
     const peaks = await unwrap(commands.loadDeckFile(deck, path))
     return peaks.filter((peak): peak is number => peak !== null)
@@ -57,6 +61,20 @@ const liveAudio: AudioApi = {
   armRecording: (armed) => command(commands.armRecording(armed)),
   triggerSampler: () => command(commands.triggerSampler()),
   saveRecording: (path) => command(commands.saveRecording(path)),
+  prepareStemPreview: (path) => unwrap(commands.prepareStemPreview(path)),
+  loadStemSlot: (slot, path) => command(commands.loadStemSlot(slot, path)),
+  setStemPlaying: (slot, playing) =>
+    command(commands.setStemPlaying(slot, playing)),
+  listStemAudio: (directory) => unwrap(commands.listStemAudio(directory)),
+  trackFilters: async (bpm, durationSeconds) => {
+    const value = await commands.trackFilters(bpm, durationSeconds)
+    return {
+      energy: value.energy,
+      phraseStarts: value.phraseStarts.filter(
+        (start): start is number => start !== null
+      ),
+    }
+  },
   audioSnapshot: () => unwrap(commands.audioSnapshot()),
   watchAudio: (onSnapshot) => {
     const channel = new Channel<AudioSnapshot>()

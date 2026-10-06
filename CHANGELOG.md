@@ -17,7 +17,9 @@ unreleased work, grouped by [roadmap](docs/ROADMAP.md) phase.
   not linked.
 - Open-Unmix UMX-HQ can be downloaded when the user asks. The SHA-256 is checked before
   the files count as installed. ONNX Runtime is not linked, and no neural separation runs.
-  Stem audio that is already on disk plays through the deck loader.
+  Stem audio that is already on disk plays through the deck loader. A labeled filter-bank
+  preview can write four wav files and play them on stem slots while a deck keeps the mix.
+  That preview is not a neural separation.
 
 ### Phases 4–13
 

@@ -182,8 +182,10 @@ work continues.
 - **Result (2026-10-06):** stem files are written off the audio thread. A background write
   while four decks play did not mark an xrun. Open-Unmix UMX-HQ is the stem model the user
   can download; the SHA-256 is checked before those files count as installed. They are
-  PyTorch weights, ONNX Runtime is not linked, and no neural separation runs. A stem that
-  is already an audio file plays through the deck loader.
+  PyTorch weights, ONNX Runtime is not linked, and no neural separation runs. A labeled
+  filter-bank preview can write four wav files off the audio thread. Stem slots play those
+  files while a deck keeps the full mix. A stem that is already an audio file also plays
+  through the deck loader.
 
 ### Phase 11: Command system
 

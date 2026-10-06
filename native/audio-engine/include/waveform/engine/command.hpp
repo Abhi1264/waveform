@@ -37,6 +37,8 @@ enum class CommandKind : std::uint8_t {
     TriggerSampler,
     /// `value` is a linear gain for a device input, 0 to 1.
     SetInputGain,
+    /// `slot` is a stem slot, 0 to 3. `value` at least 0.5 plays it.
+    SetStemPlay,
 };
 
 struct Command {

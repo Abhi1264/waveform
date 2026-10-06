@@ -35,6 +35,9 @@ void submit_command(engine::Session& session, std::uint8_t kind, std::uint8_t de
 AudioSnapshot read_snapshot(const engine::Session& session);
 void render_offline(engine::Session& session, rust::Slice<float> interleaved, double sample_rate);
 rust::String load_deck_file(engine::Session& session, std::uint8_t deck, rust::Str path);
+rust::String load_stem(engine::Session& session, std::uint8_t slot, rust::Str path);
+/// Empty on success. Writes a filter-bank preview, not a neural separation.
+rust::String write_stem_preview(rust::Str source, rust::Str directory);
 rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck);
 
 struct DeckAnalysis;

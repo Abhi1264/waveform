@@ -4,8 +4,11 @@ import { Button } from "@waveform/ui/components/button"
 import { Channel } from "@tauri-apps/api/core"
 
 import { commands, type ImportProgress, type LibraryTrack } from "@/bindings"
+import { useDeckSelection } from "@/decks/selection"
 
 import { TrackList } from "./track-list"
+
+const deckLetters = ["A", "B", "C", "D"] as const
 
 function LibraryPanel({ onOpen }: { onOpen: (path: string) => void }) {
   const [query, setQuery] = useState("")
@@ -102,8 +105,9 @@ function LibraryPanel({ onOpen }: { onOpen: (path: string) => void }) {
           const path = stemPath.trim()
           if (path.length === 0) return
           onOpen(path)
+          const selected = useDeckSelection.getState().deck
           setStatus(
-            "Loaded that file on deck A. This plays a file already on disk. It does not separate the track."
+            `Loading that file on deck ${deckLetters[selected]}. This plays a file already on disk. It does not separate the track.`
           )
         }}
       >
@@ -249,6 +253,10 @@ function LibraryPanel({ onOpen }: { onOpen: (path: string) => void }) {
           Create
         </Button>
       </form>
+      <p className="text-caption text-muted-foreground">
+        Smart playlists filter by tempo and key. Energy and phrases are on the
+        Audio panel. None of them download a model.
+      </p>
       <form
         className="flex gap-2"
         onSubmit={(event) => {
@@ -335,7 +343,11 @@ function LibraryPanel({ onOpen }: { onOpen: (path: string) => void }) {
       </form>
       <TrackList
         tracks={tracks}
-        onOpen={onOpen}
+        onOpen={(path) => {
+          onOpen(path)
+          const selected = useDeckSelection.getState().deck
+          setStatus(`Loading on deck ${deckLetters[selected]}.`)
+        }}
         onRate={(id) => {
           void commands.setTrackRating(id, 5).then((result) => {
             setStatus(result.status === "error" ? result.error : "Rated 5.")

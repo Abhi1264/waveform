@@ -5,7 +5,7 @@ use waveform_library::models::{
     recommendation_unavailable, sha256_hex, sha256_matches, stem_weight_licence, stem_weights,
     tracks_are_compatible,
 };
-use waveform_library::stems::{stem_audio_paths, write_stems};
+use waveform_library::stems::{stem_audio_paths, stem_preview_notice, write_stems};
 
 #[test]
 fn midi_note_on_is_three_bytes() {
@@ -96,6 +96,7 @@ fn stem_files_are_written_beside_playback() {
         let path = directory.path().join("abc").join(format!("{name}.bin"));
         assert_eq!(std::fs::read(path).expect("read"), b"pcm");
     }
+    assert!(stem_preview_notice().contains("not a neural"));
     assert!(stem_audio_paths(&directory.path().join("abc")).is_empty());
     std::fs::write(directory.path().join("abc").join("vocals.wav"), b"wav").expect("wav");
     std::fs::write(directory.path().join("abc").join("drums.aiff"), b"aiff").expect("aiff");

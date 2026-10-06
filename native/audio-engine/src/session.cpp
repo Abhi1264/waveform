@@ -1,6 +1,10 @@
 #include <waveform/engine/session.hpp>
 
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <condition_variable>
+#include <cstdint>
 #include <cstring>
 #include <mutex>
 #include <type_traits>
@@ -341,6 +345,10 @@ std::string Session::loadFile(int deck, const std::string& path) {
     return impl_->mixer.loadFile(deck, path);
 }
 
+std::string Session::loadStem(int slot, const std::string& path) {
+    return impl_->mixer.loadStem(slot, path);
+}
+
 std::vector<float> Session::peaks(int deck) const {
     return impl_->mixer.peaks(deck);
 }
@@ -408,6 +416,118 @@ void Session::simulateDeviceStopped() {
 
 void Session::simulateDeviceStarted(double sampleRate, int bufferSize, const std::string& name) {
     impl_->simulateDeviceStarted(sampleRate, bufferSize, name);
+}
+
+namespace {
+
+constexpr const char* kPreviewNotice = "Filter-bank preview. This is not a neural stem separation.";
+
+constexpr int kPreviewBlock = 4096;
+
+float previewCoefficient(float hertz, float rate) {
+    return 1.0f - std::expf(-2.0f * 3.14159265f * hertz / rate);
+}
+
+} // namespace
+
+std::string writeStemPreview(const std::string& source, const std::string& directory) {
+    juce::AudioFormatManager formats;
+    formats.registerBasicFormats();
+    juce::File sourceFile{source};
+    std::unique_ptr<juce::AudioFormatReader> reader(formats.createReaderFor(sourceFile));
+    if (reader == nullptr) {
+        return "Could not read " + source + ".";
+    }
+    if (reader->sampleRate < 1000.0 || reader->lengthInSamples <= 0) {
+        return "Could not read " + source + ".";
+    }
+
+    juce::File outputDirectory{directory};
+    if (!outputDirectory.createDirectory()) {
+        return "Could not create the stem preview folder.";
+    }
+
+    const char* names[4] = {"vocals", "drums", "bass", "other"};
+    juce::WavAudioFormat wav;
+    std::array<std::unique_ptr<juce::AudioFormatWriter>, 4> writers;
+    for (int band = 0; band < 4; ++band) {
+        auto file = outputDirectory.getChildFile(juce::String(names[band]) + ".wav");
+        file.deleteFile();
+        auto stream = std::make_unique<juce::FileOutputStream>(file);
+        if (!stream->openedOk()) {
+            return "Could not open a stem preview.";
+        }
+        std::unique_ptr<juce::OutputStream> output = std::move(stream);
+        auto writer = wav.createWriterFor(output, juce::AudioFormatWriter::Options{}
+                                                      .withSampleRate(reader->sampleRate)
+                                                      .withNumChannels(2)
+                                                      .withBitsPerSample(16));
+        if (writer == nullptr) {
+            return "Could not write a stem preview.";
+        }
+        writers[static_cast<std::size_t>(band)] = std::move(writer);
+    }
+
+    const float rate = static_cast<float>(reader->sampleRate);
+    const float bassCoefficient = previewCoefficient(150.0f, rate);
+    const float drumCoefficient = previewCoefficient(4000.0f, rate);
+    const float vocalCoefficient = previewCoefficient(300.0f, rate);
+    float bassState[2] = {};
+    float drumState[2] = {};
+    float vocalState[2] = {};
+    std::vector<float> left(static_cast<std::size_t>(kPreviewBlock));
+    std::vector<float> right(static_cast<std::size_t>(kPreviewBlock));
+    std::array<juce::AudioBuffer<float>, 4> bands;
+    for (auto& band : bands) {
+        band.setSize(2, kPreviewBlock);
+    }
+
+    const auto length = reader->lengthInSamples;
+    for (std::int64_t position = 0; position < length;) {
+        const int count = static_cast<int>(
+            std::min<std::int64_t>(static_cast<std::int64_t>(kPreviewBlock), length - position));
+        float* pointers[2] = {left.data(), right.data()};
+        if (!reader->read(pointers, 2, position, count)) {
+            return "Could not read " + source + ".";
+        }
+        if (reader->numChannels < 2U) {
+            std::copy_n(left.begin(), static_cast<std::size_t>(count), right.begin());
+        }
+        for (int frame = 0; frame < count; ++frame) {
+            const auto sampleIndex = static_cast<std::size_t>(frame);
+            const float pair[2] = {left[sampleIndex], right[sampleIndex]};
+            for (int channel = 0; channel < 2; ++channel) {
+                const float input = pair[channel];
+                bassState[channel] += bassCoefficient * (input - bassState[channel]);
+                const float bass = bassState[channel];
+                const float rest = input - bass;
+                drumState[channel] += drumCoefficient * (rest - drumState[channel]);
+                const float drums = rest - drumState[channel];
+                const float middle = drumState[channel];
+                vocalState[channel] += vocalCoefficient * (middle - vocalState[channel]);
+                const float other = vocalState[channel];
+                const float vocals = middle - vocalState[channel];
+                const float split[4] = {vocals, drums, bass, other};
+                for (int band = 0; band < 4; ++band) {
+                    bands[static_cast<std::size_t>(band)].setSample(channel, frame, split[band]);
+                }
+            }
+        }
+        for (int band = 0; band < 4; ++band) {
+            const auto index = static_cast<std::size_t>(band);
+            if (!writers[index]->writeFromAudioSampleBuffer(bands[index], 0, count)) {
+                return "Could not write a stem preview.";
+            }
+        }
+        position += static_cast<std::int64_t>(count);
+    }
+
+    for (auto& writer : writers) {
+        writer.reset();
+    }
+    outputDirectory.getChildFile("preview.txt")
+        .replaceWithText(juce::String(kPreviewNotice) + "\n");
+    return {};
 }
 
 } // namespace waveform::engine

@@ -9,6 +9,7 @@ import { commands } from "@/bindings"
 import { CommandPalette } from "@/commands/palette"
 import { LibraryPanel } from "@/library/library-panel"
 import { createRegistry } from "@/commands/registry"
+import { useDeckSelection } from "@/decks/selection"
 import { BottomSheet, TabletFrame } from "@/tablet/layout"
 import { useWindowTheme, type WindowTheme } from "@/window-theme"
 
@@ -74,7 +75,7 @@ commandRegistry.register({
   label: "Recommend a track",
   shortcut: "",
   reason:
-    "A recommendation model is not installed. Tempo and key filters still work.",
+    "A recommendation model is not installed. Tempo, key, energy, and phrase filters still work, and nothing is downloaded.",
   available: () => false,
   execute: () => undefined,
 })
@@ -153,7 +154,7 @@ export function App() {
         <AudioPanel api={liveAudio} />
         <LibraryPanel
           onOpen={(path) => {
-            void liveAudio.loadDeckFile(0, path)
+            useDeckSelection.getState().requestLoad(path)
           }}
         />
       </TabletFrame>

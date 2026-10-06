@@ -9,6 +9,7 @@ use tauri::ipc::Channel;
 use tauri::{AppHandle, Manager, State};
 use waveform_library::Library;
 use waveform_library::models::{self, stem_model_relative_dir};
+use waveform_library::stems::{self, stem_preview_notice};
 
 /// One search hit. Paths are included so the user can load the file they picked.
 #[derive(Debug, Clone, Serialize, Type)]
@@ -344,6 +345,115 @@ pub fn download_stem_model(app: AppHandle) -> Result<String, String> {
         "Open-Unmix UMX-HQ is installed. These are PyTorch weights, and Waveform did not separate any audio."
             .to_owned(),
     )
+}
+
+/// One filter-bank preview. The files are wavs the mixer can load. They are not a neural separation.
+#[derive(Debug, Clone, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct StemPreview {
+    vocals: String,
+    drums: String,
+    bass: String,
+    other: String,
+    notice: String,
+}
+
+fn preview_folder_name(source: &Path) -> String {
+    let stem = source
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .unwrap_or("track");
+    let mut name: String = stem
+        .chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric() {
+                character
+            } else {
+                '-'
+            }
+        })
+        .collect();
+    if name.is_empty() || name.chars().all(|character| character == '-') {
+        name = "track".to_owned();
+    }
+    let mut hash = 0_u64;
+    for byte in source.to_string_lossy().bytes() {
+        hash = hash.wrapping_mul(16777619).wrapping_add(u64::from(byte));
+    }
+    format!("{name}-{hash:x}")
+}
+
+/// Writes a filter-bank preview of `path` and returns the four wav paths.
+/// Nothing is downloaded. The notice says this is not a neural separation.
+#[tauri::command(async)]
+#[specta::specta]
+pub fn prepare_stem_preview(app: AppHandle, path: String) -> Result<StemPreview, String> {
+    let source = PathBuf::from(&path);
+    if !source.is_file() {
+        return Err(format!("{path} is not a file."));
+    }
+    let directory = app
+        .path()
+        .app_data_dir()
+        .map_err(|error| error.to_string())?
+        .join("stems")
+        .join("preview")
+        .join(preview_folder_name(&source));
+    std::fs::create_dir_all(&directory).map_err(|error| error.to_string())?;
+    let directory_text = directory.display().to_string();
+    waveform_engine::write_stem_preview(&path, &directory_text)
+        .map_err(|error| error.to_string())?;
+    let wav = |name: &str| directory.join(format!("{name}.wav")).display().to_string();
+    let preview = StemPreview {
+        vocals: wav("vocals"),
+        drums: wav("drums"),
+        bass: wav("bass"),
+        other: wav("other"),
+        notice: stem_preview_notice().to_owned(),
+    };
+    for stem in [
+        &preview.vocals,
+        &preview.drums,
+        &preview.bass,
+        &preview.other,
+    ] {
+        if !Path::new(stem).is_file() {
+            return Err(format!("The preview did not write {stem}."));
+        }
+    }
+    Ok(preview)
+}
+
+/// Audio files named vocals, drums, bass, or other in `directory`.
+#[tauri::command]
+#[specta::specta]
+pub fn list_stem_audio(directory: String) -> Result<Vec<String>, String> {
+    let root = PathBuf::from(&directory);
+    if !root.is_dir() {
+        return Err(format!("{directory} is not a folder."));
+    }
+    Ok(stems::stem_audio_paths(&root)
+        .into_iter()
+        .map(|path| path.display().to_string())
+        .collect())
+}
+
+/// Energy and 32-beat phrases from tempo alone. Nothing is downloaded.
+#[derive(Debug, Clone, Serialize, Type)]
+#[serde(rename_all = "camelCase")]
+pub struct TrackFilters {
+    energy: String,
+    phrase_starts: Vec<f32>,
+}
+
+/// Energy and phrase starts for a tempo the library already knows.
+#[tauri::command]
+#[specta::specta]
+pub fn track_filters(bpm: f32, duration_seconds: f32) -> TrackFilters {
+    TrackFilters {
+        energy: models::energy_from_bpm(bpm).to_owned(),
+        phrase_starts: models::phrase_starts(bpm, duration_seconds),
+    }
 }
 
 /// Stored controller mappings.

@@ -29,10 +29,12 @@ void Mixer::prepare(double sampleRate, int maxFrames) {
         sampleRate_ = sampleRate;
     }
     maxFrames_ = std::max(maxFrames, 1);
-    scratch_.assign(static_cast<std::size_t>(maxFrames_) * kChannels * 4, 0.0f);
+    // Four deck buffers, plus one reused buffer for stem slots. All of it is
+    // allocated here, off the audio thread.
+    scratch_.assign(static_cast<std::size_t>(maxFrames_) * kChannels * 5, 0.0f);
     delayFrames_ = std::max(1, static_cast<int>(sampleRate_ * 0.25));
     delay_.assign(static_cast<std::size_t>(delayFrames_) * kChannels * 4, 0.0f);
-    record_.assign(static_cast<std::size_t>(sampleRate_ * 2.0) * kChannels, 0.0f);
+    record_.assign(static_cast<std::size_t>(sampleRate_ * 30.0) * kChannels, 0.0f);
     recordCount_.store(0, std::memory_order_relaxed);
     samplerFrames_ = std::max(1, static_cast<int>(sampleRate_ * 0.05));
     sampler_.assign(static_cast<std::size_t>(samplerFrames_) * kChannels, 0.0f);
@@ -73,6 +75,12 @@ void Mixer::apply(const Command& command) noexcept {
     }
     if (command.kind == CommandKind::TriggerSampler) {
         samplerCursor_ = 0;
+        return;
+    }
+    if (command.kind == CommandKind::SetStemPlay) {
+        if (command.slot < 4) {
+            stems_[command.slot].playing = command.value >= 0.5f;
+        }
         return;
     }
     if (command.deck > 3) {
@@ -160,6 +168,7 @@ void Mixer::apply(const Command& command) noexcept {
     case CommandKind::ArmRecord:
     case CommandKind::TriggerSampler:
     case CommandKind::SetInputGain:
+    case CommandKind::SetStemPlay:
         break;
     }
 }
@@ -272,6 +281,25 @@ void Mixer::process(const Command* commands, int commandCount, float* interleave
         }
     }
 
+    // Stem slots sum at unity with the decks. They are not on the crossfader,
+    // so a full mix on a deck keeps playing while a stem plays.
+    float* stemBuffer = scratch_.data() + static_cast<std::size_t>(maxFrames_) * kChannels * 4;
+    for (int stem = 0; stem < 4; ++stem) {
+        auto& slot = stems_[stem];
+        if (!slot.playing || !slot.useFile) {
+            continue;
+        }
+        slot.file.render(stemBuffer, frames, 1.0f);
+        for (int frame = 0; frame < frames; ++frame) {
+            for (int channel = 0; channel < kChannels; ++channel) {
+                const auto offset =
+                    static_cast<std::size_t>(frame) * kChannels + static_cast<std::size_t>(channel);
+                interleavedStereo[offset] += stemBuffer[offset] * slot.gain;
+                masterPeak = std::max(masterPeak, std::abs(interleavedStereo[offset]));
+            }
+        }
+    }
+
     if (samplerCursor_ < samplerFrames_) {
         for (int frame = 0; frame < frames && samplerCursor_ < samplerFrames_; ++frame) {
             for (int channel = 0; channel < kChannels; ++channel) {
@@ -322,6 +350,18 @@ std::string Mixer::loadFile(int deck, const std::string& path) {
             decks_[deck].bpm = decks_[deck].file.bpm();
         }
     }
+    return error;
+}
+
+std::string Mixer::loadStem(int slot, const std::string& path) {
+    if (slot < 0 || slot > 3) {
+        return "Waveform has four stem slots, numbered 0 to 3.";
+    }
+    auto& stem = stems_[slot];
+    const auto error = stem.file.load(path);
+    stem.useFile = error.empty();
+    stem.playing = false;
+    stem.gain = 1.0f;
     return error;
 }
 

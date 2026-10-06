@@ -15,7 +15,7 @@ export const commands = {
 	openOutput: (name: string) => typedError<null, string>(__TAURI_INVOKE("open_output", { name })),
 	/**  Closes the output device. */
 	closeOutput: () => typedError<null, string>(__TAURI_INVOKE("close_output")),
-	/**  Starts a tone deck. `deck` is 0 or 1. */
+	/**  Starts a deck. `deck` is 0 to 3. */
 	playDeck: (deck: number) => typedError<null, string>(__TAURI_INVOKE("play_deck", { deck })),
 	/**  Pauses a tone deck. */
 	pauseDeck: (deck: number) => typedError<null, string>(__TAURI_INVOKE("pause_deck", { deck })),
@@ -90,6 +90,19 @@ export const commands = {
 	 *  A weight file is kept only when its SHA-256 matches the manifest.
 	 */
 	downloadStemModel: () => typedError<string, string>(__TAURI_INVOKE("download_stem_model")),
+	/**
+	 *  Writes a filter-bank preview of `path` and returns the four wav paths.
+	 *  Nothing is downloaded. The notice says this is not a neural separation.
+	 */
+	prepareStemPreview: (path: string) => typedError<StemPreview, string>(__TAURI_INVOKE("prepare_stem_preview", { path })),
+	/**  Audio files named vocals, drums, bass, or other in `directory`. */
+	listStemAudio: (directory: string) => typedError<string[], string>(__TAURI_INVOKE("list_stem_audio", { directory })),
+	/**  Energy and phrase starts for a tempo the library already knows. */
+	trackFilters: (bpm: number | null, durationSeconds: number | null) => __TAURI_INVOKE<TrackFilters>("track_filters", { bpm, durationSeconds }),
+	/**  Decodes `path` into a stem slot. The slot sums with the decks, so the full mix can keep playing. */
+	loadStemSlot: (slot: number, path: string) => typedError<null, string>(__TAURI_INVOKE("load_stem_slot", { slot, path })),
+	/**  Plays or stops one stem slot. `slot` is 0 vocals, 1 drums, 2 bass, 3 other. */
+	setStemPlaying: (slot: number, playing: boolean) => typedError<null, string>(__TAURI_INVOKE("set_stem_playing", { slot, playing })),
 };
 
 /* Types */
@@ -177,6 +190,21 @@ export type MessageLoopStatus = { state: "responding"; roundTripMicros: number }
 export type OutputDevice = {
 	typeName: string,
 	name: string,
+};
+
+/**  One filter-bank preview. The files are wavs the mixer can load. They are not a neural separation. */
+export type StemPreview = {
+	vocals: string,
+	drums: string,
+	bass: string,
+	other: string,
+	notice: string,
+};
+
+/**  Energy and 32-beat phrases from tempo alone. Nothing is downloaded. */
+export type TrackFilters = {
+	energy: string,
+	phraseStarts: (number | null)[],
 };
 
 /* Tauri Specta runtime */

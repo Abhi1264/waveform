@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-download-stem-model"
+description = "Enables the download_stem_model command without any pre-configured scope."
+commands.allow = ["download_stem_model"]
+
+[[permission]]
+identifier = "deny-download-stem-model"
+description = "Denies the download_stem_model command without any pre-configured scope."
+commands.deny = ["download_stem_model"]

@@ -43,6 +43,12 @@ fn main() {
             "list_folders",
             "tag_track",
             "recent_plays",
+            "download_stem_model",
+            "prepare_stem_preview",
+            "list_stem_audio",
+            "track_filters",
+            "load_stem_slot",
+            "set_stem_playing",
         ]),
     ))
     .expect("tauri-build failed");

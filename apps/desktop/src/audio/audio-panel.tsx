@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@waveform/ui/components/button"
 import { Fader } from "@waveform/ui/components/fader"
@@ -6,16 +6,21 @@ import { Knob } from "@waveform/ui/components/knob"
 import { LevelMeter } from "@waveform/ui/components/level-meter"
 
 import type { AudioSnapshot, OutputDevice } from "@/bindings"
-import { useDeckSelection } from "@/decks/selection"
+import { useDeckSelection, type DeckIndex } from "@/decks/selection"
 import { WaveformView } from "@/waveforms/waveform-view"
+
+import { StemSection } from "./stems"
 
 interface AudioApi {
   listOutputDevices: () => Promise<OutputDevice[]>
   openDefaultOutput: () => Promise<void>
+  openOutput: (name: string) => Promise<void>
   closeOutput: () => Promise<void>
   playDeck: (deck: number) => Promise<void>
   pauseDeck: (deck: number) => Promise<void>
   cueDeck: (deck: number) => Promise<void>
+  setDeckGain: (deck: number, decibels: number) => Promise<void>
+  setInputGain: (gain: number) => Promise<void>
   setCrossfader: (position: number) => Promise<void>
   loadDeckFile: (deck: number, path: string) => Promise<number[]>
   deckAnalysis: (deck: number) => Promise<{
@@ -36,6 +41,20 @@ interface AudioApi {
   armRecording: (armed: boolean) => Promise<void>
   triggerSampler: () => Promise<void>
   saveRecording: (path: string) => Promise<void>
+  prepareStemPreview: (path: string) => Promise<{
+    vocals: string
+    drums: string
+    bass: string
+    other: string
+    notice: string
+  }>
+  loadStemSlot: (slot: number, path: string) => Promise<void>
+  setStemPlaying: (slot: number, playing: boolean) => Promise<void>
+  listStemAudio: (directory: string) => Promise<string[]>
+  trackFilters: (
+    bpm: number,
+    durationSeconds: number
+  ) => Promise<{ energy: string; phraseStarts: number[] }>
   audioSnapshot: () => Promise<AudioSnapshot>
   watchAudio: (
     onSnapshot: (snapshot: AudioSnapshot) => void
@@ -62,10 +81,26 @@ const quiet: AudioSnapshot = {
   deviceName: "",
 }
 
+const deckIndexes = [0, 1, 2, 3] as const
+const deckLetters = ["A", "B", "C", "D"] as const
+
+interface LoadedDeck {
+  peaks: number[]
+  bpm: number | null
+  musicalKey: string
+  durationSeconds: number
+  beats: number[]
+}
+
 const tonePeaks = Array.from({ length: 160 }, (_, index) => {
   const max = 0.25 + 0.6 * Math.abs(Math.sin(index / 7))
   return [-max, max]
 }).flat()
+
+function keyLabel(key: string | undefined): string {
+  if (key == null || key.length === 0) return "—"
+  return key
+}
 
 function formatRate(snapshot: AudioSnapshot): string {
   if (!snapshot.deviceOpen) return "Closed"
@@ -78,18 +113,25 @@ function AudioPanel({ api }: { api: AudioApi }) {
   const [snapshot, setSnapshot] = useState<AudioSnapshot>(quiet)
   const [error, setError] = useState("")
   const [filePath, setFilePath] = useState("")
-  const [peaks, setPeaks] = useState<number[]>(tonePeaks)
-  const [analysis, setAnalysis] = useState({
-    bpm: null as number | null,
-    musicalKey: "",
-    durationSeconds: 8,
-    beats: [] as number[],
-  })
+  const [loaded, setLoaded] = useState<Record<number, LoadedDeck>>({})
+  const [filters, setFilters] = useState<{
+    bpm: number
+    energy: string
+    phrases: number
+  } | null>(null)
   const [cues, setCues] = useState<Record<string, number>>({})
   const [recordingPath, setRecordingPath] = useState("")
   const [recording, setRecording] = useState(false)
+  const [saved, setSaved] = useState("")
+  const [extraPlaying, setExtraPlaying] = useState<Record<number, boolean>>({})
   const deck = useDeckSelection((state) => state.deck)
   const selectDeck = useDeckSelection((state) => state.select)
+  const loadToken = useDeckSelection((state) => state.loadToken)
+  const view = loaded[deck]
+  const peaks = view && view.peaks.length > 0 ? view.peaks : tonePeaks
+  const beats = view?.beats ?? []
+  const durationSeconds =
+    view && view.durationSeconds > 0 ? view.durationSeconds : 8
 
   useEffect(() => {
     let stop: () => void = () => undefined
@@ -116,6 +158,91 @@ function AudioPanel({ api }: { api: AudioApi }) {
     }
   }, [api])
 
+  const rememberLoad = useCallback(
+    (
+      deckIndex: DeckIndex,
+      path: string,
+      nextPeaks: number[],
+      next: {
+        bpm: number | null
+        musicalKey: string
+        durationSeconds: number | null
+      },
+      nextBeats: number[]
+    ) => {
+      selectDeck(deckIndex)
+      setFilePath(path)
+      setLoaded((current) => ({
+        ...current,
+        [deckIndex]: {
+          peaks: nextPeaks,
+          bpm: next.bpm,
+          musicalKey: next.musicalKey,
+          durationSeconds: next.durationSeconds ?? 8,
+          beats: nextBeats,
+        },
+      }))
+    },
+    [selectDeck]
+  )
+
+  useEffect(() => {
+    if (loadToken === 0) return
+    const requested = useDeckSelection.getState()
+    let cancelled = false
+    api
+      .loadDeckFile(requested.loadDeck, requested.loadPath)
+      .then((nextPeaks) => {
+        if (cancelled) return undefined
+        return api.deckAnalysis(requested.loadDeck).then((next) =>
+          api.deckBeats(requested.loadDeck).then((nextBeats) => {
+            if (cancelled) return
+            rememberLoad(
+              requested.loadDeck,
+              requested.loadPath,
+              nextPeaks,
+              next,
+              nextBeats
+            )
+          })
+        )
+      })
+      .catch((reason: unknown) => {
+        if (!cancelled) {
+          setError(reason instanceof Error ? reason.message : String(reason))
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [api, loadToken, rememberLoad])
+
+  useEffect(() => {
+    if (view?.bpm == null || view.durationSeconds <= 0) return
+    const bpm = view.bpm
+    const durationSeconds = view.durationSeconds
+    let cancelled = false
+    api
+      .trackFilters(bpm, durationSeconds)
+      .then((next) => {
+        if (!cancelled) {
+          setFilters({
+            bpm,
+            energy: next.energy,
+            phrases: next.phraseStarts.length,
+          })
+        }
+      })
+      .catch((reason: unknown) => {
+        if (!cancelled) {
+          setError(reason instanceof Error ? reason.message : String(reason))
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [api, view?.bpm, view?.durationSeconds])
+
   const run = (action: () => Promise<void>) => {
     action().catch((reason: unknown) => {
       setError(reason instanceof Error ? reason.message : String(reason))
@@ -128,8 +255,9 @@ function AudioPanel({ api }: { api: AudioApi }) {
         Audio
       </h2>
       <p className="text-muted-foreground">
-        Load a wav or aiff file, or play the built-in tones. Sync waits until a
-        tempo has been found.
+        Load a wav, aiff, flac, mp3, or ogg file, or play the built-in tones.
+        Sync stays off until that deck has a beat grid. C and D stay in the mix.
+        The crossfader is A and B.
       </p>
       <p className="readout text-readout-sm" role="status">
         {formatRate(snapshot)}
@@ -143,19 +271,12 @@ function AudioPanel({ api }: { api: AudioApi }) {
           if (path.length === 0) return
           api
             .loadDeckFile(deck, path)
-            .then((nextPeaks) => {
-              if (nextPeaks.length > 0) setPeaks(nextPeaks)
-              return api.deckAnalysis(deck)
-            })
-            .then((next) =>
-              api.deckBeats(deck).then((beats) => {
-                setAnalysis({
-                  bpm: next.bpm,
-                  musicalKey: next.musicalKey,
-                  durationSeconds: next.durationSeconds ?? 8,
-                  beats,
+            .then((nextPeaks) =>
+              api.deckAnalysis(deck).then((next) =>
+                api.deckBeats(deck).then((nextBeats) => {
+                  rememberLoad(deck, path, nextPeaks, next, nextBeats)
                 })
-              })
+              )
             )
             .catch((reason: unknown) => {
               setError(
@@ -171,33 +292,48 @@ function AudioPanel({ api }: { api: AudioApi }) {
             onChange={(event) => {
               setFilePath(event.target.value)
             }}
-            placeholder="Path to a wav or aiff file"
+            placeholder="Path to a wav, aiff, flac, mp3, or ogg file"
             className="rounded-md border border-divider bg-surface px-3 py-2"
           />
         </label>
         <Button type="submit">Load</Button>
       </form>
       <WaveformView
-        peaks={peaks.length > 0 ? peaks : tonePeaks}
+        peaks={peaks}
         positionSeconds={
-          (deck === 0
-            ? snapshot.deckAPositionSeconds
-            : snapshot.deckBPositionSeconds) ?? 0
+          deck === 0
+            ? (snapshot.deckAPositionSeconds ?? 0)
+            : deck === 1
+              ? (snapshot.deckBPositionSeconds ?? 0)
+              : 0
         }
-        durationSeconds={
-          analysis.durationSeconds > 0 ? analysis.durationSeconds : 8
-        }
-        beats={analysis.beats}
+        durationSeconds={durationSeconds}
+        beats={beats}
         color={deck === 0 ? "#0574c7" : "#af4387"}
         onSeek={(seconds) => {
           run(() => api.seekDeck(deck, seconds))
         }}
       />
+      {deck > 1 ? (
+        <p className="text-caption text-muted-foreground">
+          The playhead is drawn for decks A and B. Seek on C and D still moves
+          the audio.
+        </p>
+      ) : null}
       <p className="readout text-readout">
-        {analysis.musicalKey || "—"}
+        {keyLabel(view?.musicalKey)}
         <span className="faceplate text-muted-foreground"> key </span>
-        {analysis.bpm == null ? "—" : analysis.bpm.toFixed(1)}
+        {view?.bpm == null ? "—" : view.bpm.toFixed(1)}
         <span className="faceplate text-muted-foreground"> BPM</span>
+        {view?.bpm != null && filters?.bpm === view.bpm ? (
+          <span className="faceplate text-muted-foreground">
+            {" "}
+            · {filters.energy} energy · {filters.phrases} phrases
+          </span>
+        ) : null}
+      </p>
+      <p className="text-caption text-muted-foreground">
+        Tempo, key, energy, and phrases do not download a model.
       </p>
       {error ? (
         <p role="alert" className="text-destructive">
@@ -222,34 +358,61 @@ function AudioPanel({ api }: { api: AudioApi }) {
         </Button>
       </div>
       {devices.length > 0 ? (
-        <ul className="text-caption text-muted-foreground">
+        <ul className="flex flex-col gap-2">
           {devices.map((device) => (
             <li key={`${device.typeName}:${device.name}`}>
-              {device.typeName}: {device.name}
+              <Button
+                variant="outline"
+                onPress={() => {
+                  run(() => api.openOutput(device.name))
+                }}
+              >
+                {device.typeName}: {device.name}
+              </Button>
             </li>
           ))}
         </ul>
       ) : null}
       <div className="flex flex-wrap items-end gap-8">
-        {([0, 1] as const).map((deck) => {
+        {deckIndexes.map((deckIndex) => {
           const playing =
-            deck === 0 ? snapshot.deckAPlaying : snapshot.deckBPlaying
+            deckIndex === 0
+              ? snapshot.deckAPlaying
+              : deckIndex === 1
+                ? snapshot.deckBPlaying
+                : extraPlaying[deckIndex] === true
           const level =
-            (deck === 0 ? snapshot.deckALevelDb : snapshot.deckBLevelDb) ?? -100
+            (deckIndex === 0 ? snapshot.deckALevelDb : snapshot.deckBLevelDb) ??
+            -100
+          const letter = deckLetters[deckIndex]
           return (
             <div
-              key={deck}
+              key={deckIndex}
               className="flex flex-col gap-2"
-              data-deck={deck === 0 ? "a" : "b"}
+              data-deck={letter.toLowerCase()}
             >
-              <p className="faceplate text-muted-foreground">
-                Deck {deck === 0 ? "A" : "B"}
-              </p>
-              <div className="flex gap-2">
+              <Button
+                variant={deck === deckIndex ? "default" : "outline"}
+                onPress={() => {
+                  selectDeck(deckIndex)
+                }}
+              >
+                Deck {letter}
+              </Button>
+              <div className="flex flex-wrap gap-2">
                 <Button
                   onPress={() => {
-                    selectDeck(deck)
-                    run(() => api.playDeck(deck))
+                    selectDeck(deckIndex)
+                    run(() =>
+                      api.playDeck(deckIndex).then(() => {
+                        if (deckIndex > 1) {
+                          setExtraPlaying((current) => ({
+                            ...current,
+                            [deckIndex]: true,
+                          }))
+                        }
+                      })
+                    )
                   }}
                 >
                   Play
@@ -257,8 +420,19 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 <Button
                   variant="outline"
                   onPress={() => {
+                    selectDeck(deckIndex)
                     run(() =>
-                      playing ? api.pauseDeck(deck) : api.cueDeck(deck)
+                      (playing
+                        ? api.pauseDeck(deckIndex)
+                        : api.cueDeck(deckIndex)
+                      ).then(() => {
+                        if (deckIndex > 1) {
+                          setExtraPlaying((current) => ({
+                            ...current,
+                            [deckIndex]: false,
+                          }))
+                        }
+                      })
                     )
                   }}
                 >
@@ -266,10 +440,10 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 </Button>
                 <Button
                   variant="outline"
-                  isDisabled={analysis.beats.length === 0}
+                  isDisabled={(loaded[deckIndex]?.beats.length ?? 0) === 0}
                   onPress={() => {
-                    selectDeck(deck)
-                    run(() => api.syncDeck(deck))
+                    selectDeck(deckIndex)
+                    run(() => api.syncDeck(deckIndex))
                   }}
                 >
                   Sync
@@ -277,8 +451,8 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 <Button
                   variant="outline"
                   onPress={() => {
-                    selectDeck(deck)
-                    run(() => api.setDeckLoop(deck, 0, 4))
+                    selectDeck(deckIndex)
+                    run(() => api.setDeckLoop(deckIndex, 0, 4))
                   }}
                 >
                   Loop
@@ -286,8 +460,8 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 <Button
                   variant="outline"
                   onPress={() => {
-                    selectDeck(deck)
-                    run(() => api.beatJump(deck, -1))
+                    selectDeck(deckIndex)
+                    run(() => api.beatJump(deckIndex, -1))
                   }}
                 >
                   Back
@@ -295,23 +469,23 @@ function AudioPanel({ api }: { api: AudioApi }) {
                 <Button
                   variant="outline"
                   onPress={() => {
-                    selectDeck(deck)
-                    run(() => api.beatJump(deck, 1))
+                    selectDeck(deckIndex)
+                    run(() => api.beatJump(deckIndex, 1))
                   }}
                 >
                   Forward
                 </Button>
                 {[0, 1, 2, 3].map((slot) => {
-                  const key = `${deck}:${slot}`
+                  const key = `${deckIndex}:${slot}`
                   const stored = cues[key]
                   return (
                     <Button
                       key={key}
                       variant="outline"
                       onPress={() => {
-                        selectDeck(deck)
+                        selectDeck(deckIndex)
                         const position =
-                          (deck === 0
+                          (deckIndex === 0
                             ? snapshot.deckAPositionSeconds
                             : snapshot.deckBPositionSeconds) ?? 0
                         if (stored === undefined) {
@@ -319,9 +493,9 @@ function AudioPanel({ api }: { api: AudioApi }) {
                             ...current,
                             [key]: position,
                           }))
-                          run(() => api.setHotCue(deck, slot, position))
+                          run(() => api.setHotCue(deckIndex, slot, position))
                         } else {
-                          run(() => api.jumpHotCue(deck, slot))
+                          run(() => api.jumpHotCue(deckIndex, slot))
                         }
                       }}
                     >
@@ -332,10 +506,13 @@ function AudioPanel({ api }: { api: AudioApi }) {
                   )
                 })}
               </div>
-              <LevelMeter
-                label={`Deck ${deck === 0 ? "A" : "B"} level`}
-                level={level}
-              />
+              {deckIndex < 2 ? (
+                <LevelMeter label={`Deck ${letter} level`} level={level} />
+              ) : (
+                <p className="text-caption text-muted-foreground">
+                  Deck {letter} stays in the mix.
+                </p>
+              )}
             </div>
           )
         })}
@@ -377,6 +554,17 @@ function AudioPanel({ api }: { api: AudioApi }) {
           />
         ))}
         <Knob
+          label="Gain"
+          minValue={-24}
+          maxValue={12}
+          step={0.1}
+          defaultValue={0}
+          formatValue={(value) => `${value.toFixed(1)} dB`}
+          onChange={(value) => {
+            run(() => api.setDeckGain(deck, value))
+          }}
+        />
+        <Knob
           label="Pitch"
           minValue={0.5}
           maxValue={2}
@@ -385,6 +573,17 @@ function AudioPanel({ api }: { api: AudioApi }) {
           formatValue={(value) => value.toFixed(2)}
           onChange={(value) => {
             run(() => api.setDeckPitch(deck, value))
+          }}
+        />
+        <Knob
+          label="Input"
+          minValue={0}
+          maxValue={1}
+          step={0.01}
+          defaultValue={0}
+          formatValue={(value) => value.toFixed(2)}
+          onChange={(value) => {
+            run(() => api.setInputGain(value))
           }}
         />
         {(
@@ -428,13 +627,28 @@ function AudioPanel({ api }: { api: AudioApi }) {
           {recording ? "Stop recording" : "Record"}
         </Button>
       </div>
+      <p className="text-caption text-muted-foreground">
+        Record arms the master. Save writes a wav at the path you type. The
+        buffer holds about 30 seconds. Input raises a live input on the open
+        output. Choosing that input still needs the device.
+      </p>
       <form
         className="flex flex-wrap gap-2"
         onSubmit={(event) => {
           event.preventDefault()
           const path = recordingPath.trim()
           if (path.length === 0) return
-          run(() => api.saveRecording(path))
+          setSaved("")
+          api
+            .saveRecording(path)
+            .then(() => {
+              setSaved(`Saved ${path}`)
+            })
+            .catch((reason: unknown) => {
+              setError(
+                reason instanceof Error ? reason.message : String(reason)
+              )
+            })
         }}
       >
         <label className="flex min-w-0 flex-1 flex-col gap-1">
@@ -452,6 +666,33 @@ function AudioPanel({ api }: { api: AudioApi }) {
           Save recording
         </Button>
       </form>
+      {saved ? (
+        <p role="status" className="text-caption text-muted-foreground">
+          {saved}
+        </p>
+      ) : null}
+      <StemSection
+        api={api}
+        sourcePath={filePath}
+        deckLetter={deckLetters[deck]}
+        onLoadDeck={(path) => {
+          api
+            .loadDeckFile(deck, path)
+            .then((nextPeaks) =>
+              api.deckAnalysis(deck).then((next) =>
+                api.deckBeats(deck).then((nextBeats) => {
+                  rememberLoad(deck, path, nextPeaks, next, nextBeats)
+                })
+              )
+            )
+            .catch((reason: unknown) => {
+              setError(
+                reason instanceof Error ? reason.message : String(reason)
+              )
+            })
+        }}
+        onError={setError}
+      />
     </section>
   )
 }

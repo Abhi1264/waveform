@@ -49,6 +49,11 @@ fn commands() -> Builder<tauri::Wry> {
         library::tag_track,
         library::recent_plays,
         library::download_stem_model,
+        library::prepare_stem_preview,
+        library::list_stem_audio,
+        library::track_filters,
+        engine::load_stem_slot,
+        engine::set_stem_playing,
     ])
 }
 

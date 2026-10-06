@@ -24,6 +24,9 @@ public:
 
     /// Decodes `path` on a loader thread into deck `deck`. Empty string on success.
     [[nodiscard]] std::string loadFile(int deck, const std::string& path);
+    /// Decodes `path` into a stem slot. Slots sum into the master and do not
+    /// replace a deck, so the full mix can keep playing. Empty string on success.
+    [[nodiscard]] std::string loadStem(int slot, const std::string& path);
     [[nodiscard]] std::vector<float> peaks(int deck) const;
     [[nodiscard]] float bpm(int deck) const;
     [[nodiscard]] std::string key(int deck) const;
@@ -74,12 +77,21 @@ private:
         int delayCursor = 0;
     };
 
+    /// File playback that sums with the decks. Not a deck: the crossfader does not own it.
+    struct Stem {
+        PreparedAudio file;
+        bool useFile = false;
+        bool playing = false;
+        float gain = 1.0f;
+    };
+
     void apply(const Command& command) noexcept;
     void renderDeck(int deckIndex, Deck& deck, float* interleavedStereo, int frames,
                     float& levelDb) noexcept;
     void fillSampler() noexcept;
 
     Deck decks_[4]{};
+    Stem stems_[4]{};
     float crossfader_ = 0.5f;
     float inputGain_ = 0.0f;
     bool recording_ = false;

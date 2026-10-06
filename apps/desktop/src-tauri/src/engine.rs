@@ -62,6 +62,26 @@ impl Engine {
         drop(runtime);
     }
 
+    /// Decodes a file onto a stem slot. The deck that holds the full mix is unchanged.
+    pub fn load_stem(&self, slot: u8, path: &str) -> Result<(), String> {
+        let mut guard = self.session()?;
+        guard
+            .as_mut()
+            .expect("checked")
+            .load_stem(slot, path)
+            .map_err(|error| error.to_string())
+    }
+
+    /// Plays or stops a stem slot.
+    pub fn set_stem_playing(&self, slot: u8, playing: bool) -> Result<(), String> {
+        let mut guard = self.session()?;
+        guard
+            .as_mut()
+            .expect("checked")
+            .set_stem_playing(slot, playing)
+            .map_err(|error| error.to_string())
+    }
+
     /// Decodes a file onto a deck and returns its peaks.
     pub fn load_file(&self, deck: u8, path: &str) -> Result<(), String> {
         let mut guard = self.session()?;
@@ -312,7 +332,7 @@ fn transport(engine: &Engine, command: Transport, deck: u8, value: f32) -> Resul
     })
 }
 
-/// Starts a tone deck. `deck` is 0 or 1.
+/// Starts a deck. `deck` is 0 to 3.
 #[tauri::command]
 #[specta::specta]
 pub fn play_deck(engine: State<'_, Engine>, deck: u8) -> Result<(), String> {
@@ -512,6 +532,20 @@ pub fn trigger_sampler(engine: State<'_, Engine>) -> Result<(), String> {
 #[specta::specta]
 pub fn set_input_gain(engine: State<'_, Engine>, gain: f32) -> Result<(), String> {
     mix(&engine, Transport::SetInputGain, 0, gain, 0.0, 0)
+}
+
+/// Decodes `path` into a stem slot. The slot sums with the decks, so the full mix can keep playing.
+#[tauri::command]
+#[specta::specta]
+pub fn load_stem_slot(engine: State<'_, Engine>, slot: u8, path: String) -> Result<(), String> {
+    engine.load_stem(slot, &path)
+}
+
+/// Plays or stops one stem slot. `slot` is 0 vocals, 1 drums, 2 bass, 3 other.
+#[tauri::command]
+#[specta::specta]
+pub fn set_stem_playing(engine: State<'_, Engine>, slot: u8, playing: bool) -> Result<(), String> {
+    engine.set_stem_playing(slot, playing)
 }
 
 /// Beat times in seconds. Empty until analysis has a grid.

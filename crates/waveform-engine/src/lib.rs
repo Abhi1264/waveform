@@ -92,6 +92,9 @@ mod ffi {
         fn read_snapshot(session: &Session) -> AudioSnapshot;
         fn render_offline(session: Pin<&mut Session>, interleaved: &mut [f32], sample_rate: f64);
         fn load_deck_file(session: Pin<&mut Session>, deck: u8, path: &str) -> String;
+        fn load_stem(session: Pin<&mut Session>, slot: u8, path: &str) -> String;
+        /// Empty on success. Writes a filter-bank preview, not a neural separation.
+        fn write_stem_preview(source: &str, directory: &str) -> String;
         fn deck_peaks(session: &Session, deck: u8) -> Vec<f32>;
         fn deck_analysis(session: &Session, deck: u8) -> DeckAnalysis;
         fn deck_beats(session: &Session, deck: u8) -> Vec<f32>;
@@ -182,6 +185,8 @@ pub enum Transport {
     ArmRecord = 16,
     TriggerSampler = 17,
     SetInputGain = 18,
+    /// `slot` is 0 to 3. `value` at least 0.5 plays that stem slot.
+    SetStemPlay = 19,
 }
 
 /// Two tone decks and an output device. Requires a running [`Runtime`].
@@ -276,6 +281,32 @@ impl Session {
         empty_is_ok(ffi::load_deck_file(self.inner.pin_mut(), deck, path))
     }
 
+    /// Decodes `path` into a stem slot. The full mix on a deck is left in place.
+    pub fn load_stem(&mut self, slot: u8, path: &str) -> Result<(), EngineError> {
+        if slot > 3 {
+            return Err(EngineError(
+                "Waveform has four stem slots, numbered 0 to 3.".into(),
+            ));
+        }
+        empty_is_ok(ffi::load_stem(self.inner.pin_mut(), slot, path))
+    }
+
+    /// Plays or stops a stem slot. Slots are mixed with the decks.
+    pub fn set_stem_playing(&mut self, slot: u8, playing: bool) -> Result<(), EngineError> {
+        if slot > 3 {
+            return Err(EngineError(
+                "Waveform has four stem slots, numbered 0 to 3.".into(),
+            ));
+        }
+        self.command(
+            Transport::SetStemPlay,
+            0,
+            if playing { 1.0 } else { 0.0 },
+            0.0,
+            slot,
+        )
+    }
+
     /// Interleaved min/max peak pairs for a loaded file.
     pub fn peaks(&self, deck: u8) -> Vec<f32> {
         ffi::deck_peaks(&self.inner, deck)
@@ -302,6 +333,12 @@ impl Session {
         ffi::render_offline(self.inner.pin_mut(), &mut interleaved, sample_rate);
         interleaved
     }
+}
+
+/// Writes a filter-bank preview of `source` into `directory`. This does not
+/// run a model and does not touch the audio thread.
+pub fn write_stem_preview(source: &str, directory: &str) -> Result<(), EngineError> {
+    empty_is_ok(ffi::write_stem_preview(source, directory))
 }
 
 fn empty_is_ok(error: String) -> Result<(), EngineError> {

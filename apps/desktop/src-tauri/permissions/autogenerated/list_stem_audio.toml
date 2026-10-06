@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-stem-audio"
+description = "Enables the list_stem_audio command without any pre-configured scope."
+commands.allow = ["list_stem_audio"]
+
+[[permission]]
+identifier = "deny-list-stem-audio"
+description = "Denies the list_stem_audio command without any pre-configured scope."
+commands.deny = ["list_stem_audio"]

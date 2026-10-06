@@ -96,6 +96,7 @@ void session_command(engine::Session& session, std::uint8_t kind, std::uint8_t d
     case engine::CommandKind::ArmRecord:
     case engine::CommandKind::TriggerSampler:
     case engine::CommandKind::SetInputGain:
+    case engine::CommandKind::SetStemPlay:
         session.command(kind, deck, value, 0.0f, 0);
         break;
     }
@@ -141,6 +142,16 @@ void render_offline(engine::Session& session, rust::Slice<float> interleaved, do
 rust::String load_deck_file(engine::Session& session, std::uint8_t deck, rust::Str path) {
     return rust::String(
         session.loadFile(static_cast<int>(deck), std::string(path.data(), path.size())));
+}
+
+rust::String load_stem(engine::Session& session, std::uint8_t slot, rust::Str path) {
+    return rust::String(
+        session.loadStem(static_cast<int>(slot), std::string(path.data(), path.size())));
+}
+
+rust::String write_stem_preview(rust::Str source, rust::Str directory) {
+    return rust::String(engine::writeStemPreview(std::string(source.data(), source.size()),
+                                                 std::string(directory.data(), directory.size())));
 }
 
 rust::Vec<float> deck_peaks(const engine::Session& session, std::uint8_t deck) {
